@@ -1,4 +1,4 @@
-import React from "react";
+import React, { ReactElement } from "react";
 import { 
   Box,
   Flex,
@@ -6,7 +6,9 @@ import {
   Menu,
   MenuButton,
   MenuList,
+  MenuGroup,
   MenuItem,
+  MenuDivider,
   Button,
   Avatar
 } from "@chakra-ui/react";
@@ -19,27 +21,26 @@ type logoProps = {
 };
 
 // type navBarContainerProps = {
-  
+//   children: ReactElement;
 // };
 
 type navBarProps = {
   isLoggedIn: boolean;
-  // signIn : React.Dispatch<React.SetStateAction<string>>
-  // signIn: (e: React.MouseEventHandler<HTMLDivElement>) => void;
-  signIn: any;
+  signIn: () => void;
+  signOut: () => void;
 };
 
 const Logo = ({...logoProps}: logoProps) => {
   return (
     <Box {...logoProps}>
-      <Heading fontSize="lg" fontWeight="bold">
+      <Heading as="h1">
         Qz
       </Heading>
     </Box>
   )
 };
 
-const NavBarContainer = () => {
+const NavBarContainer = ({ children }: any) => { // fix type dec
   return (
     <Flex
       as="nav"
@@ -47,15 +48,14 @@ const NavBarContainer = () => {
       justify="space-between"
       wrap="wrap"
       w="100%"
-      mb={8}
-      p={8}
-      // {...props}
+      p={4}
     >
+      { children }
     </Flex>
   )
 };
 
-export const NavBar = ({isLoggedIn, signIn}: navBarProps) => {
+export const NavBar = ({isLoggedIn, signIn, signOut}: navBarProps) => {
   const [isOpen, setIsOpen] = React.useState(false)
 
   const toggle = () => {
@@ -71,16 +71,18 @@ export const NavBar = ({isLoggedIn, signIn}: navBarProps) => {
       />
       {isLoggedIn ? (
         <Menu>
-          <MenuButton as={Avatar}>
-            Actions
-          </MenuButton>
+          <MenuButton as={Avatar} />
           <MenuList>
-            <MenuItem>My Qz</MenuItem>
-            <MenuItem>My Az</MenuItem>
+            <MenuGroup title="Profile">
+              <MenuItem>My Qz</MenuItem>
+              <MenuItem>My Az</MenuItem>
+            </MenuGroup>
+            <MenuDivider />
+            <Button onClick={() => signOut()}>Logout</Button>
           </MenuList>
         </Menu>
       ):(
-        <Button onClick={() => toggle()}>Login with Wallet</Button>
+        <Button onClick={() => toggle()}>Login</Button>
       )}
     </NavBarContainer>
   )

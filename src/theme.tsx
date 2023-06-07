@@ -4,7 +4,70 @@ import {
     type StyleFunctionProps,
 } from '@chakra-ui/react';
 // import { mode } from '@chakra-ui/theme-tools';
+// import {
+//   ChakraBaseProvider,
+//   extendBaseTheme,
+//   ColorModeScript,
+// } from '@chakra-ui/react';
+// import chakraTheme from '@chakra-ui/theme';
 
+// const { 
+//   Button,
+//   Tabs,
+//   Alert,
+//   Spinner,
+//   Toast,
+//   Drawer,
+//   Modal,
+//   Avatar,
+//   Card,
+//   Divider,
+//   Breadcrumb,
+//   Link,
+//   LinkBox,
+//   LinkOverlay,
+//   Checkbox,
+//   FormControl,
+//   IconButton,
+//   Input,
+//   Radio,
+//   Switch,
+//   Textarea,
+//   Text,
+//   Fade, Slide, SlideFade, Collapse,
+//   CloseButton,
+//   Portal,
+// } = chakraTheme.components;
+
+// const theme = extendBaseTheme({
+//   components: {
+//     Button,
+//     Tabs,
+//     Alert,
+//     Spinner,
+//     Toast,
+//     Drawer,
+//     Modal,
+//     Avatar,
+//     Card,
+//     Divider,
+//     Breadcrumb,
+//     Link,
+//     LinkBox,
+//     LinkOverlay,
+//     Checkbox,
+//     FormControl,
+//     IconButton,
+//     Input,
+//     Radio,
+//     Switch,
+//     Textarea,
+//     Text,
+//     Fade, Slide, SlideFade, Collapse,
+//     CloseButton,
+//     Portal,
+//   },
+// });
 
 const config: ThemeConfig = {
   initialColorMode: 'dark',
