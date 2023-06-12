@@ -3,6 +3,7 @@ import {
   Box,
   Flex,
   Heading,
+  Link,
   Menu,
   MenuButton,
   MenuList,
@@ -12,6 +13,7 @@ import {
   Button,
   Avatar
 } from "@chakra-ui/react";
+import { Link as RouterLink } from 'react-router-dom'
 // import { HamburgerIcon } from "@chakra-ui/icons";
 
 type logoProps = {
@@ -40,7 +42,7 @@ const Logo = ({...logoProps}: logoProps) => {
   )
 };
 
-const NavBarContainer = ({ children }: any) => { // fix type dec
+const NavBarContainer = ({ children }: any) => { // fix! type dec
   return (
     <Flex
       as="nav"
@@ -65,10 +67,12 @@ export const NavBar = ({isLoggedIn, signIn, signOut}: navBarProps) => {
 
   return (
     <NavBarContainer>
-      <Logo
-        w="100px"
-        color={"white"}
-      />
+      <Link as={RouterLink} to={'/'}>
+        <Logo
+          w="100px"
+          color={"white"}
+        />
+      </Link>
       {isLoggedIn ? (
         <Menu>
           <MenuButton as={Avatar} />

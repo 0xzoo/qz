@@ -4,10 +4,11 @@ import {
   createBrowserRouter,
   RouterProvider,
 } from "react-router-dom";
-import Root, { loader as rootLoader } from './routes/Root';
-// import Root from './routes/Root';
+// import Root, { loader as rootLoader } from './routes/Root';
+import Root from './routes/Root';
 import { Home } from './routes/Home';
-// import { Q } from './routes/Q';
+import { Qz } from './components/Qz';
+import { Q } from './routes/Q';
 // import { A } from './routes/A';
 
 
@@ -16,7 +17,20 @@ const router = createBrowserRouter([
     element: < Root />,
     // loader: rootLoader,
     children: [
-      { index: true, element: <Home /> }
+      { 
+        index: true, 
+        element: <Home />,
+      },
+      { 
+        path: "q",
+        element: <Qz />,
+        children: [
+          {
+            path: ":qId", 
+            element: <Q />,
+          }
+        ]
+      },
     ]
   }
 ]);
