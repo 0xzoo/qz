@@ -1,4 +1,4 @@
-import React, { ReactElement } from "react";
+import React, { ReactElement, useEffect } from "react";
 import { 
   Box,
   Flex,
@@ -14,7 +14,8 @@ import {
   Avatar
 } from "@chakra-ui/react";
 import { Link as RouterLink } from 'react-router-dom'
-// import { HamburgerIcon } from "@chakra-ui/icons";
+import { useAuth, useIsAuthenticated } from "@polybase/react";
+import { auth, useLogin } from "../auth/useLogin";
 
 type logoProps = {
   w: string;
@@ -26,11 +27,11 @@ type logoProps = {
 //   children: ReactElement;
 // };
 
-type navBarProps = {
-  isLoggedIn: boolean;
-  signIn: () => void;
-  signOut: () => void;
-};
+// type navBarProps = {
+//   isLoggedIn: boolean;
+//   signIn: () => void;
+//   signOut: () => void;
+// };
 
 const Logo = ({...logoProps}: logoProps) => {
   return (
@@ -51,19 +52,25 @@ const NavBarContainer = ({ children }: any) => { // fix! type dec
       wrap="wrap"
       w="100%"
       p={4}
+      zIndex={2000}
     >
       { children }
     </Flex>
   )
 };
 
-export const NavBar = ({isLoggedIn, signIn, signOut}: navBarProps) => {
+export const NavBar = () => {
+  const { state } = useAuth()
+  const [ isLoggedIn ] = useIsAuthenticated()
   const [isOpen, setIsOpen] = React.useState(false)
 
   const toggle = () => {
     setIsOpen(!isOpen);
-    signIn();
+    useLogin();
   };
+
+  // useEffect(() => {
+  // },[state])
 
   return (
     <NavBarContainer>
@@ -73,7 +80,7 @@ export const NavBar = ({isLoggedIn, signIn, signOut}: navBarProps) => {
           color={"white"}
         />
       </Link>
-      {isLoggedIn ? (
+      {state ? (
         <Menu>
           <MenuButton as={Avatar} />
           <MenuList>
@@ -82,7 +89,7 @@ export const NavBar = ({isLoggedIn, signIn, signOut}: navBarProps) => {
               <MenuItem>My Az</MenuItem>
             </MenuGroup>
             <MenuDivider />
-            <Button onClick={() => signOut()}>Logout</Button>
+            <Button onClick={() => auth.signOut()}>Logout</Button>
           </MenuList>
         </Menu>
       ):(

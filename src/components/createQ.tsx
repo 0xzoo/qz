@@ -18,27 +18,24 @@ import {
 } from "@chakra-ui/react"
 // import { Auth } from '@polybase/auth'
 import { nanoid } from 'nanoid'
-import { useRootContext, getPublicKey } from '../routes/Root'
+import { useAuth, useIsAuthenticated, usePolybase } from '@polybase/react'
+import { useLogin } from '../auth/useLogin'
 
-type createQModalProps = {
-  isLoggedIn: boolean
-  signIn: () => void
-};
 
-// const auth = new Auth();
-
-export const CreateQModal = ({isLoggedIn, signIn}: createQModalProps) => {
+export const CreateQModal = () => {
   const { isOpen, onOpen, onClose } = useDisclosure()
   const [ prompt, setPrompt ] = useState('')
   const [ isError, setIsError ] = useState(false)  
   const [ responses, setResponses ] = useState(['Yes','No'])
-  const { db, account } = useRootContext()
+  const polybase = usePolybase()
+  const [ isLoggedIn ] = useIsAuthenticated()
+  const authState = useAuth().state;
   
   const handleCreateQModalButton = () => {
     return isLoggedIn ? (
       onOpen()
     ):(
-      signIn ()
+      useLogin()
     )
   }
 
@@ -52,7 +49,7 @@ export const CreateQModal = ({isLoggedIn, signIn}: createQModalProps) => {
   // fix! to make extra responses have '-' button on right, default responses separate
   // '+' button can disappear after 4 responses
   const handleAddResponse = () => {
-    if (responses.length < 4) {
+    if (responses.length < 5) {
       setResponses( arr => [ ...arr, 'Add a response'])
     }
   }
@@ -64,8 +61,6 @@ export const CreateQModal = ({isLoggedIn, signIn}: createQModalProps) => {
     setResponses(newResponses)
   }
 
-  // id: string, owner: User, stem: string, type: string, timestamp: number, az: string[]
-
   // Create a new Q
   const createQ = async () => {
     if (prompt === '') {
@@ -73,14 +68,12 @@ export const CreateQModal = ({isLoggedIn, signIn}: createQModalProps) => {
       return
     } else { setIsError(false) }
     const stem = prompt
-    const type = "mc"
-    // const publicKey = auth?.wallet?.getPublicKeyString() // !fix
-    const publicKey = account.publicKey
-    const user = await db.collection('User').record(publicKey).get()
-    // console.log('user', user)
+    const type = "mc" //
+    const publicKey = authState?.userId as string
+    const user = await polybase.collection('User').record(publicKey).get()
     const timestamp = Date.now()
     const answers = responses
-    await db.collection('Qz').create([
+    await polybase.collection('Qz').create([
       nanoid(), 
       user,
       stem,
@@ -88,6 +81,8 @@ export const CreateQModal = ({isLoggedIn, signIn}: createQModalProps) => {
       timestamp, 
       answers
     ])
+    // !fix subtract creation cost from user
+    // await db.collection('User').record(publicKey).call('createQ')
     closeModal()
   }
 
