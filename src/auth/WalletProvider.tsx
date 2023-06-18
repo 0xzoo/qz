@@ -9,7 +9,7 @@ export interface WalletContextValue {
   publicKey: string | null
   login: () => void
   logout: () => void
-  skipSigning: () => void
+  // skipSigning: () => void
   reinforceSigning: () => void
 }
 
@@ -18,7 +18,7 @@ export const WalletContext = createContext<WalletContextValue>({
   publicKey: null,
   login: () => {},
   logout: () => {},
-  skipSigning: () => {},
+  // skipSigning: () => {},
   reinforceSigning: () => {}
 })
 
@@ -66,7 +66,7 @@ export function WalletProvider({ children }: WalletProviderProps) {
     publicKey,
     login,
     logout,
-    skipSigning,
+    // skipSigning,
     reinforceSigning
   }), [publicKey, privateKey])
 
