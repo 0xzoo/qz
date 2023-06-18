@@ -12,10 +12,14 @@ import {
   FormControl,
   FormLabel,
   FormErrorMessage,
+  Select,
   Input,
   Textarea,
-  useDisclosure
+  useDisclosure,
+  Stack
 } from "@chakra-ui/react"
+import { QTypeSelect } from "./QTypeSelect"
+import { ResponseView } from "./ResponseView";
 // import { Auth } from '@polybase/auth'
 import { nanoid } from 'nanoid'
 import { useAuth, useIsAuthenticated, usePolybase } from '@polybase/react'
@@ -27,6 +31,14 @@ export const CreateQModal = () => {
   const [ prompt, setPrompt ] = useState('')
   const [ isError, setIsError ] = useState(false)  
   const [ responses, setResponses ] = useState(['Yes','No'])
+  // enum qzType {
+  //   'mc',
+  //   'shortText',
+  //   'longText',
+  //   'ranking'
+  // }
+  const [ qType, setQType ] = useState('shortText')
+  const [ hasImportance, setHasImportance ] = useState(false)
   const polybase = usePolybase()
   const [ isLoggedIn ] = useIsAuthenticated()
   const authState = useAuth().state;
@@ -41,6 +53,10 @@ export const CreateQModal = () => {
 
   const initialRef = React.useRef(null)
 
+  const handleQTypeSelect = (e: React.ChangeEvent<HTMLSelectElement>): void => {
+    setQType(e.target.value)
+  }
+
   const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>): void => {
     e.currentTarget.value === '' ? setIsError(true) : setIsError(false)
     setPrompt(e.currentTarget.value)
@@ -52,6 +68,12 @@ export const CreateQModal = () => {
     if (responses.length < 5) {
       setResponses( arr => [ ...arr, 'Add a response'])
     }
+  }
+
+  // !fix add subtractResponse
+
+  const handleAddImportance = () => {
+    // !fix add checkbox and state
   }
 
   const handleResponseChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
@@ -67,20 +89,21 @@ export const CreateQModal = () => {
       setIsError(true)
       return
     } else { setIsError(false) }
-    const stem = prompt
-    const type = "mc" //
     const publicKey = authState?.userId as string
     const user = await polybase.collection('User').record(publicKey).get()
     const timestamp = Date.now()
-    const answers = responses
-    await polybase.collection('Qz').create([
+
+    let newQ: any = [
       nanoid(), 
       user,
-      stem,
-      type,
+      prompt,
+      qType,
       timestamp, 
-      answers
-    ])
+    ]
+
+    if (qType === 'mc') newQ.push(responses)
+
+    await polybase.collection('Qz').create(newQ).catch((e) => {throw e})
     // !fix subtract creation cost from user
     // await db.collection('User').record(publicKey).call('createQ')
     closeModal()
@@ -93,6 +116,8 @@ export const CreateQModal = () => {
     onClose()
   }
 
+  
+
   return (
     <>
       <Button onClick={handleCreateQModalButton}>Create a New Q</Button>
@@ -103,7 +128,9 @@ export const CreateQModal = () => {
           backdropFilter='blur(10px) hue-rotate(330deg)'
         />
         <ModalContent>
-          <ModalHeader>Create a New Q</ModalHeader>
+          <ModalHeader display={'flex'} flexDirection={'row'}>
+            Create a New Q
+          </ModalHeader>
           <ModalCloseButton />
           <ModalBody>
           <FormControl mb={6} isInvalid={isError} >
@@ -121,27 +148,11 @@ export const CreateQModal = () => {
               <FormErrorMessage>Prompt is required.</FormErrorMessage>
             )}
           </FormControl>
-          <FormControl>
-            <FormLabel>Responses</FormLabel>
-            {responses.map((res, i) => {
-              return (
-                <Input 
-                  placeholder= {res}
-                  color='white'
-                  type='text'
-                  mb={3}
-                  key={i}
-                  aria-posinset={i}
-                  _placeholder={{
-                    opacity: .7,
-                    color: 'inherit'
-                  }}
-                  onChange={handleResponseChange}
-                />
-              )
-            })}
-            <Button onClick={handleAddResponse}>+</Button>
+          <FormControl mb={6}>
+            <FormLabel>Type</FormLabel>
+            <QTypeSelect onChange={handleQTypeSelect} value={qType} />
           </FormControl>
+          <ResponseView type={qType} responses={responses} onAddResponse={handleAddResponse} onAddImportance={handleAddImportance} onResponseInput={handleResponseChange}/>
           </ModalBody>
 
           <ModalFooter>

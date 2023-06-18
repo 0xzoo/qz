@@ -17,11 +17,11 @@ export const AzRadio = ({data, onChange}: AzRadioProps) => {
     name: "test",
     defaultValue: "two",
     onChange: onChange
-  });
+  })
 
-  const group = getRootProps();
+  const group = getRootProps()
+
   return (
-    // Surprisingly one doesn't use <RadioGroup> but instead something like <HStack>
     <Stack {...group}>
       {data.map((item, i) => (
         <CustomRadio 
@@ -38,10 +38,10 @@ export const AzRadio = ({data, onChange}: AzRadioProps) => {
   );
 }
 
-function CustomRadio(props: any) {
-  const { getInputProps, getRadioProps } = useRadio(props);
-  const input = getInputProps();
-  const checkbox = getRadioProps();
+const CustomRadio = (props: any) => {
+  const { getInputProps, getRadioProps } = useRadio(props)
+  const input = getInputProps()
+  const checkbox = getRadioProps()
 
   return (
     <Box as="label">
@@ -66,82 +66,5 @@ function CustomRadio(props: any) {
         {props.children}
       </Box>
     </Box>
-  );
+  )
 }
-
-
-
-
-// const RadioCard = (props: any) =>  {
-//   const { getInputProps, getRadioProps } = useRadio(props)
-
-//   const input = getInputProps()
-//   const checkbox = getRadioProps()
-
-//   return (
-//     <Box as='label'>
-//       <input {...input} />
-//       <Box
-//         {...checkbox}
-//         cursor='pointer'
-//         borderWidth='1px'
-//         borderRadius='md'
-//         boxShadow='md'
-//         _checked={{
-//           bg: 'teal.600',
-//           color: 'white',
-//           borderColor: 'teal.600',
-//         }}
-//         _focus={{
-//           boxShadow: 'outline',
-//         }}
-//         px={5}
-//         py={3}
-//       >
-//         {props.children}
-//       </Box>
-//     </Box>
-//   )
-// }
-
-
-// export const AzRadio = ({data, onChange}: AzRadioProps) => {
-//   const handleChange = (e: any) => {
-//     onChange(e)
-//   }
-
-//   const { getRootProps, getRadioProps } = useRadioGroup({
-//     name: 'framework',
-//     defaultValue: 'react',
-//     onChange: handleChange,
-//   })
-
-//   const group = getRootProps()
-
-//   return (
-//     <>
-//       {data && data.length > 0 ? (
-//         <Stack {...group}>
-//           {data.map((res: any, i: number) => {
-//             const radio = getRadioProps({i})
-//             console.log('i')
-//             return (
-//               <RadioCard 
-//                 color='white'
-//                 mb={3}
-//                 key={i}
-//                 aria-posinset={i}
-//                 value={res}
-//                 {...radio}
-//               >
-//                 {res}
-//               </RadioCard>
-//             )
-//           })}
-//         </Stack>
-//       ):(
-//         ''
-//       )}
-//     </>
-//   )
-// }

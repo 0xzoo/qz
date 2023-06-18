@@ -1,3 +1,12 @@
+export interface PublicKey {
+  alg: string
+  crv: string
+  kty: string
+  use: string
+  x: string
+  y: string
+}
+
 export interface User {
   id: string
   publicKey: string;

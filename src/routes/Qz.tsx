@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react"
+import { useEffect, useState, useContext, useCallback, useMemo } from "react"
 import { generatePath, Outlet, useNavigate, useOutletContext, useParams, useLoaderData } from 'react-router-dom'
 import { usePolybase, useDocument } from "@polybase/react"
 import { useAuth } from "@polybase/react"
-import { secp256k1 } from "@polybase/util"
+import { secp256k1, decodeFromString } from "@polybase/util"
 import { nanoid } from 'nanoid'
 import {
   Stack,
@@ -17,21 +17,27 @@ import {
   DrawerCloseButton,
   useDisclosure
 } from '@chakra-ui/react'
-import { Qz as Q, User, Owner, AType, loaderData } from "../types/types"
+import { Qz as QType, User, Owner, AType, loaderData } from "../types/types"
+import { getPublicKey } from "../auth/useLogin"
+import { WalletContext } from "../auth/WalletProvider"
+import { useWallet } from "../auth/useWallet"
 
 
 export const Qz = () => {
   const polybase = usePolybase()
   const navigate = useNavigate()
   const { isOpen, onOpen, onClose } = useDisclosure()
-  const [ currentQSet, setCurrentQSet ] = useState(null)
-  const [ qIndex, setQIndex ] = useState<string | null>(null)
-  const [ value, setValue ] = useState<string | null>(null)
+  const [ currentQSet, setCurrentQSet ] = useState()
+  const [ currentQ, setCurrentQ ] = useState<QType>()
+  const [ qIndex, setQIndex ] = useState<string>()
+  const [ value, setValue ] = useState<string>("")
   const [ isPrivateA, setIsPrivateA ] = useState<boolean>(false)
-  const [ importance, setImportance ] = useState<number | null>(null)
-  const [ asset, setAsset ] = useState<string | null>(null)
-  const [ response, setResponse ] = useState<string | number | null>(null)
+  const [ importance, setImportance ] = useState<number>()
+  const [ asset, setAsset ] = useState<string>()
+  const [ response, setResponse ] = useState<string>("")
   const authState = useAuth().state;
+  const wallet = useContext(WalletContext)
+  // const { skipSigning, reinforceSigning } = useWallet()
 
   // const { data: qData, error, loading } = useDocument(
   //   qId ? polybase.collection('Qz').record(qId) : null,
@@ -59,8 +65,8 @@ export const Qz = () => {
 
   useEffect(() => {
     onOpen()
-    // const qData= data.data as Q
-    // setCurrentQId(qId)
+    const qData= data.data as QType
+    setCurrentQ(qData)
   },[])
 
   const onCloseQz = () => {
@@ -69,71 +75,101 @@ export const Qz = () => {
   }
 
   const onSubmitA = async () => {
-    const owner = {
-      collectionId: "pk/0x4d5de3518af7848d4997a0749bcdfa49582ba156231afdb227818cf802dc597d593c0faa1604eaa2e0ac3867555cf07fe0c902e1b7893cd7a9b3feb0e4bd1489/QzTest2/User",
-      id: authState?.userId as string
+    switch (data.type) {
+      case value:
+        
+        break;
+    
+      default:
+        break;
     }
+    
+    const publicKey = authState?.userId as string
+    const user = await polybase.collection('User').record(publicKey).get()
     const qId = {
-      collectionId: data.collection as string,
+      collectionId: data.collection.id as string,
       id: data.data.id as string
     }
-
+    const valueOr = value === "" ? undefined : value
     const timestamp = Date.now()
 
-    let newA: any = [
+    const newA: any = [
       nanoid(),
-      owner,
-      qId,
+      user,
+      data,
       timestamp,
       isPrivateA,
+      qIndex,
+      valueOr,
+      importance,
+      asset
     ]
 
-    if (typeof qIndex != null) {
-      newA.push(qIndex as unknown as number)
-    }
-    if (typeof value != null) newA.push(value as string)
     if (isPrivateA) {
       // encrypt asymm
+      const publicKey = wallet.publicKey as string
+      console.log(publicKey)
+      const pkUintArray = decodeFromString(publicKey, 'hex')
+      console.log(pkUintArray)
+      console.log(typeof qIndex)
+        
+      // const strDataToBeEncrypted = decodeFromString(response as string, 'utf8')
+      if (response) {console.log('ye ok')}
       const encryptedValueAsHexStr = await secp256k1.asymmetricEncryptToEncoding(
-        publicKey,
-        "top secret info"
+        pkUintArray,
+        response as string
       );
-    }
-    if (typeof importance != null) newA.push(importance as number)
 
+      console.log('encryptedValueAsHexStr', encryptedValueAsHexStr)
+    } 
+    // if (typeof qIndex != null) {
+    //   newA.push(qIndex as unknown as number)
+    // }
+    // !fix
+    // if (value !== '') newA.push(value as string)
+    // if (typeof importance != null) newA.push(importance as number)
+
+    // const pk = getPublicKey(userId)
     console.log('newA', newA)
-    await polybase.collection('Az').create([newA]).catch((e) => {throw e})
+    // console.log('pk', pk)
+    await polybase.collection('Az').create(newA).catch((e) => console.log('az err', e))
+    // skipSigning()
     await polybase.collection('Qz').record(qId.id).call("incrNumAz").catch((e) => {throw e})
+    // reinforceSigning()
     // generatePath("/users/:id", { id: "42" });
     // navigate
   }
 
 
-  const handleMcRadio = (i: string): void => {
+  const handleMcRadio = (i: string) => {
     const qIndex = data.data.az.indexOf(i)
     setQIndex(qIndex)
-    setResponse(qIndex)
+    const qIndexString = String(qIndex)
+    setResponse(qIndexString)
   }  
   
-  const handleIsPrivate = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleIsPrivate = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setIsPrivateA(e.target.checked)
-    console.log('private')
-  }  
+  },[setIsPrivateA])
   
   const handleImportance = (i: number) => {
     setImportance(i)
+    console.log(i)
   }  
   
-  const handleValue = (i: string) => {
-    setValue(i)
-    setResponse(i)
+  const handleValue = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    console.log(e.target.value)
+    setValue(e.target.value)
+    setResponse(e.target.value)
   }
 
   const QzContextProps = [
     handleMcRadio,
     handleIsPrivate,
     handleImportance,
-    handleValue  
+    handleValue,
+    value,
+    currentQ
   ]
   
 
@@ -163,8 +199,9 @@ export const Qz = () => {
               <Button variant='outline' mr={3} onClick={onCloseQz}>
                 Save and Quit
               </Button>
+              {/* !fix users should be able to skip even if theyve responded */}
               <Button colorScheme='blue' onClick={onSubmitA}>
-                {response ? ('Save and Next'):('Skip')}
+                {response === "" ? ('Skip'):('Save and Next')}
               </Button>
             </Flex>
           </DrawerFooter>
@@ -176,10 +213,12 @@ export const Qz = () => {
 }
 
 type QzContextType = [ 
-  handleQIndex: (i: number) => void,
-  handleIsPrivate: (event: React.ChangeEvent<HTMLInputElement>) => void,
+  handleMcRadio: (i: string) => void,
+  handleIsPrivate: () => void,
   handleImportance: (i: number) => void,
-  handleValue: (i: string) => void,
+  handleValue: (e: React.ChangeEvent<HTMLTextAreaElement>) => void,
+  value: string,
+  currentQ: QType
 ]
 
 export function useQzContext() {

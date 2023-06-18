@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react"
+import React, { useEffect, useState, useCallback } from "react"
 import {
   Box,
   Stack,
@@ -18,6 +18,7 @@ import {
   Spinner,
   Textarea
 } from '@chakra-ui/react'
+import { PrivateToggle } from "./privateToggle"
 import { generatePath, useParams, useRouteLoaderData } from 'react-router-dom'
 import { useQzContext } from '../routes/Qz'
 import { useAuth, useIsAuthenticated, useDocument } from "@polybase/react"
@@ -32,22 +33,12 @@ export const QA = () => {
     handleMcRadio,
     handleIsPrivate,
     handleImportance,
-    handleValue  
+    handleValue,
+    value,
+    currentQ
    ] = useQzContext()
-  const data: any = useRouteLoaderData('Qz')
-  const currentQ: QType = data.data
-
-
-  const IsPrivateSwitch = () => {
-    return (
-      <FormControl display='flex' alignItems='center'>
-        <FormLabel htmlFor='isPrivateA' mb='0'>
-          Private
-        </FormLabel>
-        <Switch id='isPrivateA' onChange={handleIsPrivate}/>
-      </FormControl>
-    )
-  }
+  // const data: any = useRouteLoaderData('Qz')
+  // const currentQ: QType = data.data
 
   const ImportanceSlider = () => {
     const leftLabelStyles = {
@@ -65,10 +56,6 @@ export const QA = () => {
       left: '86% !important',
       w: 'max-content'
     }
-
-    const onSliderChange = (e: any) => {
-      handleImportance(e)
-    }
   
     return (
       <Box>
@@ -79,7 +66,7 @@ export const QA = () => {
           step={25}
           marginTop={4}
           aria-label='slider-ex-6'
-          onChange={onSliderChange}
+          onChange={handleImportance}
           >
           <SliderMark value={0} {...leftLabelStyles}>
             Not Important
@@ -96,14 +83,12 @@ export const QA = () => {
     )
   }
 
-  const handleRadioChange = (e: number) => {
-    handleMcRadio(e)
-  }
-
-  const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    handleValue(e.target.value)
-    console.log(e.target.value)
-  }
+  // const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+  //   // !fix check textArea value lengths, show error if too long, or countdown
+  //   // if (currentQ.type === "shortText") {}
+  //   // if (currentQ.type === "longText") {}    
+  //   handleValue(e.target.value)
+  // }
 
 
   return (
@@ -111,13 +96,15 @@ export const QA = () => {
       <Box>
         <Card minW={'400px'} h={'-webkit-fit-content'} bg={'blue.700'}>
           <CardHeader alignSelf={'end'} paddingBottom={0}>
-            <IsPrivateSwitch />
+            {/* <IsPrivateSwitch /> */}
+            <PrivateToggle onChange={handleIsPrivate} />
           </CardHeader>
           <CardBody paddingTop={4}>
             <Text fontSize={"xl"} align={'center'} paddingBottom={8}>{currentQ.stem}</Text>
             <Divider marginBottom={8} />
-            {currentQ.type === "mc" ? (<AzRadio data={currentQ.az} onChange={handleRadioChange}/>):('')}
-            {currentQ.type === "text" ? (<Textarea onChange={handleTextareaChange}/>):('')}
+            {currentQ.type === "mc" ? (<AzRadio data={currentQ.az} onChange={handleMcRadio}/>):('')}
+            {currentQ.type === "shortText" ? (<Textarea value={value} size={'sm'} h={100} bgColor={'blue.600'} onChange={handleValue}/>):('')}
+            {currentQ.type === "longText" ? (<Textarea value={value} size={'lg'} h={200} colorScheme={"twitter"} onChange={handleValue}/>):('')}
           </CardBody>
         </Card>
         {currentQ.importance ? (<ImportanceSlider />):('')}

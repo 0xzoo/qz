@@ -15,7 +15,8 @@ import {
 } from "@chakra-ui/react";
 import { Link as RouterLink } from 'react-router-dom'
 import { useAuth, useIsAuthenticated } from "@polybase/react";
-import { auth, useLogin } from "../auth/useLogin";
+import { auth } from "../auth/useLogin";
+import { useWallet } from "../auth/useWallet"
 
 type logoProps = {
   w: string;
@@ -63,10 +64,11 @@ export const NavBar = () => {
   const { state } = useAuth()
   const [ isLoggedIn ] = useIsAuthenticated()
   const [isOpen, setIsOpen] = React.useState(false)
+  const { login, logout } = useWallet()
 
   const toggle = () => {
     setIsOpen(!isOpen);
-    useLogin();
+    login();
   };
 
   // useEffect(() => {
@@ -89,7 +91,7 @@ export const NavBar = () => {
               <MenuItem>My Az</MenuItem>
             </MenuGroup>
             <MenuDivider />
-            <Button onClick={() => auth.signOut()}>Logout</Button>
+            <Button onClick={() => logout()}>Logout</Button>
           </MenuList>
         </Menu>
       ):(
