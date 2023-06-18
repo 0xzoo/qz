@@ -28,8 +28,8 @@ export interface Qz {
   stem: string;
   type: string;
   timestamp: number;
-  az: string[];
   numAz: number;
+  az?: string[];
   importance?: number;
   tags?: string[];
   order?: number;

@@ -12,11 +12,8 @@ import {
   FormControl,
   FormLabel,
   FormErrorMessage,
-  Select,
-  Input,
   Textarea,
   useDisclosure,
-  Stack
 } from "@chakra-ui/react"
 import { QTypeSelect } from "./QTypeSelect"
 import { ResponseView } from "./ResponseView";
@@ -74,6 +71,7 @@ export const CreateQModal = () => {
 
   const handleAddImportance = () => {
     // !fix add checkbox and state
+    setHasImportance(!hasImportance)
   }
 
   const handleResponseChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
@@ -102,6 +100,7 @@ export const CreateQModal = () => {
     ]
 
     if (qType === 'mc') newQ.push(responses)
+    if (hasImportance) newQ.push(hasImportance)
 
     await polybase.collection('Qz').create(newQ).catch((e) => {throw e})
     // !fix subtract creation cost from user

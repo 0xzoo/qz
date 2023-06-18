@@ -1,4 +1,4 @@
-import React, { createContext, useState, useCallback, useEffect, useMemo } from 'react'
+import React, { createContext, useState, useCallback, useMemo } from 'react'
 import { usePolybase } from '@polybase/react'
 import { auth } from './useLogin'
 import { useLogin } from './useLogin'

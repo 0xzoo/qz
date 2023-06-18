@@ -18,10 +18,10 @@ const Home = () => {
 
   // Query for Qs
   const query = polybase.collection('Qz').sort('timestamp', 'desc')
-  const { data, error, loading } = useCollection(query)
+  const { data, loading } = useCollection(query)
 
   const popQuery = polybase.collection('Qz').sort('numAz', 'desc')
-  const { data: popData, error: popError, loading: popLoading } = useCollection(popQuery)
+  const { data: popData, loading: popLoading } = useCollection(popQuery)
 
   const NewQz = () => {
     return (

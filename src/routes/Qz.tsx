@@ -1,6 +1,6 @@
-import { useEffect, useState, useContext, useCallback, useMemo } from "react"
-import { generatePath, Outlet, useNavigate, useOutletContext, useParams, useLoaderData } from 'react-router-dom'
-import { usePolybase, useDocument } from "@polybase/react"
+import { useEffect, useState, useContext, useCallback } from "react"
+import { Outlet, useNavigate, useOutletContext, useLoaderData } from 'react-router-dom'
+import { usePolybase } from "@polybase/react"
 import { useAuth } from "@polybase/react"
 import { secp256k1, decodeFromString } from "@polybase/util"
 import { nanoid } from 'nanoid'
@@ -17,23 +17,23 @@ import {
   DrawerCloseButton,
   useDisclosure
 } from '@chakra-ui/react'
-import { Qz as QType, User, Owner, AType, loaderData } from "../types/types"
-import { getPublicKey } from "../auth/useLogin"
+import { Qz as QType } from "../types/types"
+// import { getPublicKey } from "../auth/useLogin"
 import { WalletContext } from "../auth/WalletProvider"
-import { useWallet } from "../auth/useWallet"
+// import { useWallet } from "../auth/useWallet"
 
 
 export const Qz = () => {
   const polybase = usePolybase()
   const navigate = useNavigate()
   const { isOpen, onOpen, onClose } = useDisclosure()
-  const [ currentQSet, setCurrentQSet ] = useState()
+  // const [ currentQSet, setCurrentQSet ] = useState()
   const [ currentQ, setCurrentQ ] = useState<QType>()
   const [ qIndex, setQIndex ] = useState<string>()
   const [ value, setValue ] = useState<string>("")
   const [ isPrivateA, setIsPrivateA ] = useState<boolean>(false)
   const [ importance, setImportance ] = useState<number>()
-  const [ asset, setAsset ] = useState<string>()
+  // const [ asset, setAsset ] = useState<string>()
   const [ response, setResponse ] = useState<string>("")
   const authState = useAuth().state;
   const wallet = useContext(WalletContext)
@@ -102,7 +102,7 @@ export const Qz = () => {
       qIndex,
       valueOr,
       importance,
-      asset
+      // asset
     ]
 
     if (isPrivateA) {
@@ -184,7 +184,7 @@ export const Qz = () => {
       >
         <DrawerOverlay />
         <DrawerContent>
-          {currentQSet && <DrawerHeader>Create your account</DrawerHeader>}
+          {/* {currentQSet && <DrawerHeader>Create your account</DrawerHeader>} */}
           <DrawerBody>
             <Flex direction={'row'} p={'4'} h={'100%'} justifyContent={'center'} alignItems={'center'}>
 

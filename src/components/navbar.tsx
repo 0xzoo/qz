@@ -1,4 +1,4 @@
-import React, { ReactElement, useEffect } from "react";
+import React from "react";
 import { 
   Box,
   Flex,
@@ -15,7 +15,6 @@ import {
 } from "@chakra-ui/react";
 import { Link as RouterLink } from 'react-router-dom'
 import { useAuth, useIsAuthenticated } from "@polybase/react";
-import { auth } from "../auth/useLogin";
 import { useWallet } from "../auth/useWallet"
 
 type logoProps = {
@@ -62,7 +61,7 @@ const NavBarContainer = ({ children }: any) => { // fix! type dec
 
 export const NavBar = () => {
   const { state } = useAuth()
-  const [ isLoggedIn ] = useIsAuthenticated()
+  // const [ isLoggedIn ] = useIsAuthenticated()
   const [isOpen, setIsOpen] = React.useState(false)
   const { login, logout } = useWallet()
 

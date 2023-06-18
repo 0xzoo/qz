@@ -1,5 +1,5 @@
 import * as eth from '@polybase/eth'
-import { secp256k1, encodeToString, decodeFromString } from '@polybase/util'
+import { secp256k1, encodeToString } from '@polybase/util'
 import { Polybase } from '@polybase/client'
 import { ethPersonalSign } from '@polybase/eth'
 import { Auth } from '@polybase/auth'
