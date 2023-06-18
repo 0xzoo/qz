@@ -1,12 +1,7 @@
-import React, { useEffect, useState, useCallback } from "react"
 import {
   Box,
-  Stack,
   Text,
   Divider,
-  FormControl,
-  FormLabel,
-  Switch,
   Card,
   CardHeader,
   CardBody,
@@ -15,20 +10,19 @@ import {
   SliderFilledTrack,
   SliderMark,
   SliderThumb,
-  Spinner,
   Textarea
 } from '@chakra-ui/react'
 import { PrivateToggle } from "./privateToggle"
-import { generatePath, useParams, useRouteLoaderData } from 'react-router-dom'
+// import { generatePath, useParams, useRouteLoaderData } from 'react-router-dom'
 import { useQzContext } from '../routes/Qz'
-import { useAuth, useIsAuthenticated, useDocument } from "@polybase/react"
+// import { useAuth } from "@polybase/react"
 import { AzRadio } from "../components/AzRadio"
-import { Qz as QType } from '../types/types'
+// import { Qz as QType } from '../types/types'
 
 // generatePath("/users/:id", { id: "42" });
 
 export const QA = () => {
-  const { auth, state } = useAuth()
+  // const { auth, state } = useAuth()
   const [
     handleMcRadio,
     handleIsPrivate,
@@ -83,14 +77,6 @@ export const QA = () => {
     )
   }
 
-  // const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-  //   // !fix check textArea value lengths, show error if too long, or countdown
-  //   // if (currentQ.type === "shortText") {}
-  //   // if (currentQ.type === "longText") {}    
-  //   handleValue(e.target.value)
-  // }
-
-
   return (
     <>
       <Box>
@@ -102,7 +88,7 @@ export const QA = () => {
           <CardBody paddingTop={4}>
             <Text fontSize={"xl"} align={'center'} paddingBottom={8}>{currentQ.stem}</Text>
             <Divider marginBottom={8} />
-            {currentQ.type === "mc" ? (<AzRadio data={currentQ.az} onChange={handleMcRadio}/>):('')}
+            {currentQ.type === "mc" ? (<AzRadio data={currentQ.az as string[]} onChange={handleMcRadio}/>):('')}
             {currentQ.type === "shortText" ? (<Textarea value={value} size={'sm'} h={100} bgColor={'blue.600'} onChange={handleValue}/>):('')}
             {currentQ.type === "longText" ? (<Textarea value={value} size={'lg'} h={200} colorScheme={"twitter"} onChange={handleValue}/>):('')}
           </CardBody>

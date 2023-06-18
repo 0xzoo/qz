@@ -17,7 +17,7 @@ export const Home = () => {
 
   // Query for Qs
   const query = polybase.collection('Qz').sort('timestamp', 'desc');
-  const { data, error, loading } = useCollection(query);
+  const { data, loading } = useCollection(query);
   console.log('data', data)
 
   const NewQz = () => {

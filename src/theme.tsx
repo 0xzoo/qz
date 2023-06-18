@@ -76,7 +76,7 @@ const config: ThemeConfig = {
 
 const overrides = {
   styles: {
-    global: (props: StyleFunctionProps) => ({
+    global: () => ({
       body: {
         // fontFamily: 'body',
         // color: mode('gray.800', 'whiteAlpha.900')(props),

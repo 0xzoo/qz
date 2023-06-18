@@ -44,11 +44,11 @@ export function WalletProvider({ children }: WalletProviderProps) {
     await auth.signOut()
   }, [])
 
-  const skipSigning = useCallback(() => {
-    polybase.signer(async (data: string) => {
-      return null
-    })
-  }, [])
+  // const skipSigning = useCallback(() => {
+  //   polybase.signer(async (data: string) => {
+  //     return null
+  //   })
+  // }, [])
   
   const reinforceSigning = () => {
     if (privateKey) {

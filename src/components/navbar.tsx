@@ -14,7 +14,7 @@ import {
   Avatar
 } from "@chakra-ui/react";
 import { Link as RouterLink } from 'react-router-dom'
-import { useAuth, useIsAuthenticated } from "@polybase/react";
+import { useAuth } from "@polybase/react";
 import { useWallet } from "../auth/useWallet"
 
 type logoProps = {
