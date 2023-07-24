@@ -26,8 +26,8 @@ import {
   Qz as QType
 } from "../types/types"
 // import { getPublicKey } from "../auth/useLogin"
-import { WalletContext } from "../auth/WalletProvider"
-import { QA } from "../components/qA"
+import { WalletContext } from '../auth/WalletProvider'
+import { QA } from '../components/qA'
 // import { CollectionList } from "@polybase/client"
 // import { useWallet } from "../auth/useWallet"
 

@@ -1,6 +1,5 @@
 import {
   Box,
-  Text,
   Heading,
   Divider,
   Flex,
@@ -19,7 +18,7 @@ import { PrivateToggle } from "./privateToggle"
 // import { useAuth } from "@polybase/react"
 import { AzRadio } from "./azRadio"
 import { Qz as QType } from '../types/types'
-import React, { memo, useCallback, useState } from 'react'
+import React, { useCallback, useState } from 'react'
 
 // generatePath("/users/:id", { id: "42" });
 

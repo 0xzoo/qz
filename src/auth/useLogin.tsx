@@ -27,7 +27,7 @@ export const useLogin = async () => {
 export const getWallet = async (account: string) => {
   // Lookup account
   const col = polybase.collection<User>('User')
-  const doc = col.record(account)
+  // const doc = col.record(account)
   const user = await getUser(account)
 
   // if user exists, get private key and decrypt

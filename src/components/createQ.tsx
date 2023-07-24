@@ -18,8 +18,8 @@ import {
   useDisclosure,
   useColorModeValue,
 } from "@chakra-ui/react"
-import { QTypeSelect } from "./qTypeSelect"
-import { ResponseView } from "./responseView";
+import { QTypeSelect } from './qTypeSelect'
+import { ResponseView } from './responseView'
 // import { Auth } from '@polybase/auth'
 import { nanoid } from 'nanoid'
 import { useAuth, useIsAuthenticated, usePolybase } from '@polybase/react'
