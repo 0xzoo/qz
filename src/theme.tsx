@@ -78,7 +78,7 @@ const overrides = {
   styles: {
     global: () => ({
       body: {
-        // fontFamily: 'body',
+        fontFamily: 'body',
         // color: mode('gray.800', 'whiteAlpha.900')(props),
         // bg: mode('white', 'gray.800')(props),
         // lineHeight: 'base',
@@ -87,8 +87,8 @@ const overrides = {
       },
     }),
     fonts: {
-      body: "system-ui, sans-serif",
-      heading: "Josefin Sans, sans-serif",
+      body: "Libre Franklin, sans-serif",
+      heading: "Libre Franklin, serif",
     },
   },
   config,

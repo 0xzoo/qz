@@ -21,7 +21,7 @@ export const AzRadio = ({data, onChange}: AzRadioProps) => {
   const group = getRootProps()
 
   return (
-    <Stack {...group}>
+    <Stack gap={3} {...group}>
       {data.map((item, i) => (
         <CustomRadio 
           key={i} 
@@ -34,7 +34,7 @@ export const AzRadio = ({data, onChange}: AzRadioProps) => {
         </CustomRadio>
       ))}
     </Stack>
-  );
+  )
 }
 
 const CustomRadio = (props: any) => {

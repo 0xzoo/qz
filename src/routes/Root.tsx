@@ -1,18 +1,15 @@
-import { Outlet } from "react-router-dom"
-import { NavBar } from '../components/navbar'
 import { 
   Flex,
-  Heading,
-  Link,
-  List,
-  Text,
-  Stack,
-  Spinner
+  Box
 } from '@chakra-ui/react'
+// import { useSwipeable } from 'react-swipeable'
 import { usePolybase, useCollection } from '@polybase/react'
-import { Link as RouterLink, generatePath } from "react-router-dom"
-import { CreateQModal } from '../components/createQ'
+import { Outlet } from "react-router-dom"
+import { NavBar } from "../components/navbar"
+import { CreateQModal } from "../components/createQ"
+import { QzTabs } from '../components/qzTabs'
 
+// !fix use suspense
 const Home = () => {
   const polybase = usePolybase()
 
@@ -23,69 +20,44 @@ const Home = () => {
   const popQuery = polybase.collection('Qz').sort('numAz', 'desc')
   const { data: popData, loading: popLoading } = useCollection(popQuery)
 
-  const NewQz = () => {
-    return (
-      <List>
-        {data?.data.map((res: any, i: number) => {
-          const path = generatePath("/q/:qId", { qId: res.data.id });
-          return (
-            <Link as={RouterLink} to={path} key={i}>
-              <Flex direction={'row'} border='1px solid' borderColor='gray.100' p={4} justifyContent={'space-between'}>
-                <Text fontSize='lg'>{res.data.stem}</Text>
-                <Text>{res.data.numAz}</Text>
-              </Flex>
-            </Link>
-          )
-        })}
-      </List>
-    )
-  }
-
-  const PopQz = () => {
-    return (
-      <List>
-        {popData?.data.map((res: any, i: number) => {
-          const path = generatePath("/q/:qId", { qId: res.data.id });
-          return (
-            <Link as={RouterLink} to={path} key={i}>
-              <Flex direction={'row'} border='1px solid' borderColor='gray.100' p={4} justifyContent={'space-between'}>
-                <Text fontSize='lg'>{res.data.stem}</Text>
-                <Text>{res.data.numAz}</Text>
-              </Flex>
-            </Link>
-          )
-        })}
-      </List>
-    )
-  }
+  // !fix change to load data on view load
+  let QzCategories = [
+    {
+      id: 0,
+      name: 'New',
+      tag: 'New',
+      loading: loading,
+      data: data
+    },
+    {
+      id: 1,
+      name: 'Popular',
+      tag: 'Pop',
+      loading: popLoading,
+      data: popData
+    }
+  ]
 
   return (
-    <Flex direction={'column'} h={'100%'} w={'100vw'} justifyContent={'space-between'} p={10}>
-      <Flex direction={'row'} h={'80%'} w={'100%'} justifyContent={'space-around'}>
-        <Stack spacing={8} w='40%' maxW='50em' h='80%'>
-          <Heading as={'h2'} fontSize={'2xl'}>New Qz</Heading>
-          <Flex direction={'column'} justifyContent={'flex-start'}>
-            {loading ? (
-              <Spinner />
-            ) : (
-              <NewQz />
-            )}
-          </Flex>
-        </Stack>
-        <Stack spacing={8} w='40%' maxW='50em' h='80%'>
-          <Heading as={'h2'} fontSize={'2xl'}>Pop Qz</Heading>
-          <Flex direction={'column'} justifyContent={'flex-start'}>
-            {popLoading ? (
-              <Spinner />
-            ) : (
-              <PopQz />
-            )}
-          </Flex>
-        </Stack>
-      </Flex>
-      <Flex w='100%' justifyContent={'center'}>
+    <Flex 
+      direction={'column'}
+      h={'100%'}
+      w={'100vw'}
+      justifyContent={'space-between'}
+      p={0}
+      overflow={'hidden'}
+
+    >
+      {!loading && <QzTabs categories={QzCategories} />}
+      
+      <Box 
+        pos={'absolute'}
+        bottom={0}
+        right={0}
+        p={4}
+      >
         <CreateQModal />
-      </Flex>
+      </Box>
     </Flex>
   )
 }

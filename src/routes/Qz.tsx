@@ -1,11 +1,14 @@
-import { useEffect, useState, useContext, useCallback } from "react"
-import { Outlet, useNavigate, useOutletContext, useLoaderData } from 'react-router-dom'
-import { usePolybase } from "@polybase/react"
-import { useAuth } from "@polybase/react"
+import React, { useEffect, useState, useContext, useCallback } from "react"
+import { useNavigate, useLoaderData } from 'react-router-dom'
+import {
+  usePolybase,
+  useAuth,
+  // useCollection
+} from "@polybase/react"
+// import { listAzToQ } from "../pb/functions"
 import { secp256k1, decodeFromString } from "@polybase/util"
 import { nanoid } from 'nanoid'
 import {
-  Stack,
   Button,
   Flex,
   Drawer,
@@ -15,11 +18,17 @@ import {
   DrawerOverlay,
   DrawerContent,
   DrawerCloseButton,
-  useDisclosure
+  useDisclosure,
+  useColorModeValue,
 } from '@chakra-ui/react'
-import { Qz as QType } from "../types/types"
+import { 
+  // Az as AType, 
+  Qz as QType
+} from "../types/types"
 // import { getPublicKey } from "../auth/useLogin"
 import { WalletContext } from "../auth/WalletProvider"
+import { QA } from "../components/qA"
+// import { CollectionList } from "@polybase/client"
 // import { useWallet } from "../auth/useWallet"
 
 
@@ -29,6 +38,7 @@ export const Qz = () => {
   const { isOpen, onOpen, onClose } = useDisclosure()
   // const [ currentQSet, setCurrentQSet ] = useState()
   const [ currentQ, setCurrentQ ] = useState<QType>()
+  // const [ userAz, setUserAz ] = useState<AType[] | null>(null)
   const [ qIndex, setQIndex ] = useState<string>()
   const [ value, setValue ] = useState<string>("")
   const [ isPrivateA, setIsPrivateA ] = useState<boolean>(false)
@@ -38,33 +48,49 @@ export const Qz = () => {
   const authState = useAuth().state;
   const wallet = useContext(WalletContext)
   // const { skipSigning, reinforceSigning } = useWallet()
+  console.log('Qz reloaded')
 
   // const { data: qData, error, loading } = useDocument(
   //   qId ? polybase.collection('Qz').record(qId) : null,
   // )
 
   const data = useLoaderData() as any
+  // console.log(data)
   // create currentQSet starting with current qId length 5
 
   // Query for Qs
-  // const query = db.collection('Qz').sort('timestamp', 'desc');
-  // const { data, error, loading } = useCollection(query);
-
-  // const newQz: any = data?.data;
-
-  // let qzArray = []
-
-  // for (let index = 0; index < newQz.length; index++) {
-  //   const q = newQz[index];
-    
-  // }
-
+  // const qzCollectionReference = polybase.collection("Qz")
+  // const azCollectionReference = polybase.collection("Az")
+  // const query = polybase.collection('Qz').sort('timestamp', 'desc')
 
   // check against qz already answered by user
-  // pass down to child for links
+  // const qId = data.data.id
+  // console.log(qId)
+
+  // Query for prior answers to this question by this user
+  // const { data: priorAz } = useCollection(
+  //   currentQ
+  //     ? azCollectionReference
+  //       .where('qId', '==', qzCollectionReference.record(currentQ.id))
+  //     : null
+  // )
+
+  // console.log(priorAz)
+
+  // setUserAz(priorAz?.data as unknown as AType[]) 
+  
+  // const { data: priorAz } = useCollection(
+  //   qId
+  //     ? azCollectionReference
+  //       .where('qId', '==', qzCollectionReference.record(qId))
+  //     : null
+  // )
+
+  // console.log(priorAz)
 
   useEffect(() => {
     onOpen()
+
     const qData= data.data as QType
     setCurrentQ(qData)
   },[])
@@ -86,10 +112,6 @@ export const Qz = () => {
     
     const publicKey = authState?.userId as string
     const user = await polybase.collection('User').record(publicKey).get()
-    const qId = {
-      collectionId: data.collection.id as string,
-      id: data.data.id as string
-    }
     const valueOr = value === "" ? undefined : value
     const timestamp = Date.now()
 
@@ -134,93 +156,73 @@ export const Qz = () => {
     // console.log('pk', pk)
     await polybase.collection('Az').create(newA).catch((e) => console.log('az err', e))
     // skipSigning()
-    await polybase.collection('Qz').record(qId.id).call("incrNumAz").catch((e) => {throw e})
+    await polybase.collection('Qz').record(data.id).call("incrNumAz", [data.id]).catch((e) => console.log(e))
     // reinforceSigning()
     // generatePath("/users/:id", { id: "42" });
     // navigate
   }
 
-
-  const handleMcRadio = (i: string) => {
+  const handleMcRadio = useCallback((i: string) => {
     const qIndex = data.data.az.indexOf(i)
     setQIndex(qIndex)
     const qIndexString = String(qIndex)
     setResponse(qIndexString)
-  }  
+  },[setQIndex, setResponse])
   
   const handleIsPrivate = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setIsPrivateA(e.target.checked)
   },[setIsPrivateA])
   
-  const handleImportance = (i: number) => {
+  const handleImportance = useCallback((i: number) => {
     setImportance(i)
     console.log(i)
-  }  
+  },[setImportance])
   
-  const handleValue = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    console.log(e.target.value)
-    setValue(e.target.value)
-    setResponse(e.target.value)
-  }
+  const handleValue = useCallback((s: string) => {
+    setValue(s)
+    setResponse(s)
+  },[setValue, setResponse])
 
-  const QzContextProps = [
+  const initialRef = React.useRef(null)  
+
+  const QzContextProps = {
     handleMcRadio,
     handleIsPrivate,
     handleImportance,
     handleValue,
-    value,
-    currentQ
-  ]
-  
+    initialRef,
+    currentQ 
+  }
 
   return (
-    <Stack>
-      <Drawer
-        isOpen={isOpen}
-        placement='bottom'
-        onClose={onCloseQz}
-        size={'full'}
-        blockScrollOnMount={false}
-      >
-        <DrawerOverlay />
-        <DrawerContent>
-          {/* {currentQSet && <DrawerHeader>Create your account</DrawerHeader>} */}
-          <DrawerBody>
-            <Flex direction={'row'} p={'4'} h={'100%'} justifyContent={'center'} alignItems={'center'}>
-
-              <Outlet context={QzContextProps} />
-
-            </Flex>
-          </DrawerBody>
-          <DrawerCloseButton top={20}/>
-
-          <DrawerFooter>
-            <Flex direction={'row'} justifyContent={'space-between'} w={'100%'}>
-              <Button variant='outline' mr={3} onClick={onCloseQz}>
-                Save and Quit
-              </Button>
-              {/* !fix users should be able to skip even if theyve responded */}
-              <Button colorScheme='blue' onClick={onSubmitA}>
-                {response === "" ? ('Skip'):('Save and Next')}
-              </Button>
-            </Flex>
-          </DrawerFooter>
-          {/* <ArrowNavs /> */}
-        </DrawerContent>
-      </Drawer>
-    </Stack>
+    <Drawer
+      isOpen={isOpen}
+      placement='bottom'
+      onClose={onCloseQz}
+      size={'full'}
+      blockScrollOnMount={false}
+      initialFocusRef={initialRef}
+    >
+      <DrawerOverlay />
+      <DrawerContent pt={20} bgColor={useColorModeValue('#ff0', 'gray.700')}>
+        {/* {currentQSet && <DrawerHeader>Create your account</DrawerHeader>} */}
+        <DrawerBody>
+          <QA {...QzContextProps} />
+        </DrawerBody>
+        <DrawerFooter>
+          <Flex direction={'row'} justifyContent={'space-between'} w={'100%'}>
+            <Button variant='outline' mr={3} onClick={onCloseQz}>
+              Save and Quit
+            </Button>
+            {/* !fix users should be able to skip even if theyve responded */}
+            <Button colorScheme='blue' onClick={onSubmitA}>
+              {response === "" ? ('Skip'):('Save and Next')}
+            </Button>
+          </Flex>
+        </DrawerFooter>
+        <DrawerCloseButton top={20} size={'lg'}/>
+        {/* <ArrowNavs /> */}
+      </DrawerContent>
+    </Drawer>
   )
-}
-
-type QzContextType = [ 
-  handleMcRadio: (i: string) => void,
-  handleIsPrivate: () => void,
-  handleImportance: (i: number) => void,
-  handleValue: (e: React.ChangeEvent<HTMLTextAreaElement>) => void,
-  value: string,
-  currentQ: QType
-]
-
-export function useQzContext() {
-  return useOutletContext<QzContextType>();
 }

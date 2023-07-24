@@ -1,8 +1,8 @@
-import React from "react";
+import React from "react"
 import { 
   Box,
   Flex,
-  Heading,
+  Image,
   Link,
   Menu,
   MenuButton,
@@ -11,34 +11,30 @@ import {
   MenuItem,
   MenuDivider,
   Button,
-  Avatar
-} from "@chakra-ui/react";
+  ButtonGroup,
+  IconButton,
+  // Avatar,
+  Spacer,
+  useColorMode,
+  useColorModeValue
+} from "@chakra-ui/react"
+import {
+  MoonIcon,
+  SunIcon,
+  HamburgerIcon
+} from '@chakra-ui/icons'
 import { Link as RouterLink } from 'react-router-dom'
-import { useAuth } from "@polybase/react";
+import { useIsAuthenticated } from "@polybase/react"
 import { useWallet } from "../auth/useWallet"
 
 type logoProps = {
-  w: string;
-  // h?: string;
-  color: string;
+  w: string
 };
-
-// type navBarContainerProps = {
-//   children: ReactElement;
-// };
-
-// type navBarProps = {
-//   isLoggedIn: boolean;
-//   signIn: () => void;
-//   signOut: () => void;
-// };
 
 const Logo = ({...logoProps}: logoProps) => {
   return (
-    <Box {...logoProps}>
-      <Heading as="h1">
-        Qz
-      </Heading>
+    <Box {...logoProps} ml={2}>
+      <Image src={useColorModeValue('/qL.svg','/qz3.svg')} alt='Qz Logo' boxSize={12} />
     </Box>
   )
 };
@@ -51,17 +47,31 @@ const NavBarContainer = ({ children }: any) => { // fix! type dec
       justify="space-between"
       wrap="wrap"
       w="100%"
+      bgColor={useColorModeValue('#ff0', 'transparent')}
       p={4}
       zIndex={2000}
     >
       { children }
     </Flex>
   )
-};
+}
+
+const ColorModeToggle = () => {
+  const { colorMode, toggleColorMode } = useColorMode()
+  return (
+    <Box>
+      <IconButton
+        aria-label='Change ColorMode'
+        onClick={toggleColorMode}
+        bg={'transparent'}
+        icon={colorMode === 'light' ? <MoonIcon /> : <SunIcon />}
+      />
+    </Box>
+  )
+}
 
 export const NavBar = () => {
-  const { state } = useAuth()
-  // const [ isLoggedIn ] = useIsAuthenticated()
+  const [ isLoggedIn ] = useIsAuthenticated()
   const [isOpen, setIsOpen] = React.useState(false)
   const { login, logout } = useWallet()
 
@@ -70,32 +80,37 @@ export const NavBar = () => {
     login();
   };
 
-  // useEffect(() => {
-  // },[state])
-
   return (
     <NavBarContainer>
       <Link as={RouterLink} to={'/'}>
         <Logo
           w="100px"
-          color={"white"}
         />
       </Link>
-      {state ? (
-        <Menu>
-          <MenuButton as={Avatar} />
-          <MenuList>
-            <MenuGroup title="Profile">
-              <MenuItem>My Qz</MenuItem>
-              <MenuItem>My Az</MenuItem>
-            </MenuGroup>
-            <MenuDivider />
-            <Button onClick={() => logout()}>Logout</Button>
-          </MenuList>
-        </Menu>
-      ):(
-        <Button onClick={() => toggle()}>Login</Button>
-      )}
+      <Spacer />
+      <ButtonGroup alignItems={'center'}>
+        <ColorModeToggle />
+        {isLoggedIn ? (
+          <Menu>
+            <MenuButton
+              as={IconButton}
+              aria-label='Menu'
+              icon={<HamburgerIcon />}
+              bg={'transparent'}
+            />
+            <MenuList>
+              <MenuGroup title="Profile">
+                <MenuItem>My Qz</MenuItem>
+                <MenuItem>My Az</MenuItem>
+              </MenuGroup>
+              <MenuDivider />
+              <Button onClick={() => logout()}>Logout</Button>
+            </MenuList>
+          </Menu>
+        ):(
+          <Button onClick={() => toggle()}>Login</Button>
+        )}
+      </ButtonGroup>
     </NavBarContainer>
   )
 };

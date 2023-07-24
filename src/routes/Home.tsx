@@ -9,7 +9,7 @@ import {
 } from '@chakra-ui/react'
 import { usePolybase, useCollection } from '@polybase/react'
 import { Link as RouterLink, generatePath } from "react-router-dom";
-import { CreateQModal } from '../components/createQ';
+import { CreateQModal } from '../components/CreateQ';
 // import { useCallback, useEffect } from 'react';
 
 export const Home = () => {

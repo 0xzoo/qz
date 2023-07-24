@@ -1,7 +1,9 @@
 
 import React, { useState } from "react";
-import { 
+import {
+  Box,
   Button,
+  Image,
   Modal,
   ModalOverlay,
   ModalContent,
@@ -14,9 +16,10 @@ import {
   FormErrorMessage,
   Textarea,
   useDisclosure,
+  useColorModeValue,
 } from "@chakra-ui/react"
-import { QTypeSelect } from "./QTypeSelect"
-import { ResponseView } from "./ResponseView";
+import { QTypeSelect } from "./qTypeSelect"
+import { ResponseView } from "./responseView";
 // import { Auth } from '@polybase/auth'
 import { nanoid } from 'nanoid'
 import { useAuth, useIsAuthenticated, usePolybase } from '@polybase/react'
@@ -39,6 +42,7 @@ export const CreateQModal = () => {
   const polybase = usePolybase()
   const [ isLoggedIn ] = useIsAuthenticated()
   const authState = useAuth().state;
+  console.log('createQ reloaded')
   
   const handleCreateQModalButton = () => {
     return isLoggedIn ? (
@@ -119,7 +123,11 @@ export const CreateQModal = () => {
 
   return (
     <>
-      <Button onClick={handleCreateQModalButton}>Create a New Q</Button>
+      <Box 
+        onClick={handleCreateQModalButton}
+      >
+        <Image src={useColorModeValue('/addButtonL.svg', '/addButton.svg')} alt='Create a new Q' h={50} w={50} cursor={'pointer'}/>
+      </Box>
 
       <Modal isOpen={isOpen} onClose={closeModal} initialFocusRef={initialRef} >
         <ModalOverlay
@@ -151,7 +159,13 @@ export const CreateQModal = () => {
             <FormLabel>Type</FormLabel>
             <QTypeSelect onChange={handleQTypeSelect} value={qType} />
           </FormControl>
-          <ResponseView type={qType} responses={responses} onAddResponse={handleAddResponse} onAddImportance={handleAddImportance} onResponseInput={handleResponseChange}/>
+          <ResponseView 
+            type={qType} 
+            responses={responses} 
+            onAddResponse={handleAddResponse}
+            onAddImportance={handleAddImportance}
+            onResponseInput={handleResponseChange}
+          />
           </ModalBody>
 
           <ModalFooter>

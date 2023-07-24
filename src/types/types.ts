@@ -8,10 +8,11 @@ export interface PublicKey {
 }
 
 export interface User {
-  id: string
-  publicKey: string;
-  pvKey: string;
-  tokenBalance: number;
+  id: string // eth wallet publicKey as hex
+  publicKey: string; // eth wallet publicKey as PublicKey 
+  wpbKey: string; // indapp wallet publicKey as hex
+  wpvKey: string; // indapp wallet privateKey as encrypted hex
+  tokenBalance: number; // indapp token balance
   name?: string;
   desc?: string;
   twitter?: string;
@@ -35,6 +36,7 @@ export interface Qz {
   order?: number;
   required?: boolean;
   assets?: string[];
+  parent? : string;
 }
 
 export type QType = [
@@ -43,6 +45,7 @@ export type QType = [
   stem: string,
   type: string,
   timestamp: number,
+  numAz: number,
   az?: string[],
   importance?: number,
   tags?: string[],
