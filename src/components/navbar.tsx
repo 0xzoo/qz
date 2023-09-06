@@ -24,7 +24,7 @@ import {
   HamburgerIcon
 } from '@chakra-ui/icons'
 import { Link as RouterLink } from 'react-router-dom'
-import { useIsAuthenticated } from "@polybase/react"
+// import { useIsAuthenticated } from "@polybase/react"
 import { useWallet } from "../auth/useWallet"
 
 type logoProps = {
@@ -34,7 +34,7 @@ type logoProps = {
 const Logo = ({...logoProps}: logoProps) => {
   return (
     <Box {...logoProps} ml={2}>
-      <Image src={useColorModeValue('/qL.svg','/qz3.svg')} alt='Qz Logo' boxSize={12} />
+      <Image src={useColorModeValue('/thiqq.svg','/thiwqq.svg')} alt='Qz Logo' boxSize={12} />
     </Box>
   )
 };
@@ -49,7 +49,6 @@ const NavBarContainer = ({ children }: any) => { // fix! type dec
       w="100%"
       bgColor={useColorModeValue('#ff0', 'transparent')}
       p={4}
-      zIndex={2000}
     >
       { children }
     </Flex>
@@ -71,26 +70,26 @@ const ColorModeToggle = () => {
 }
 
 export const NavBar = () => {
-  const [ isLoggedIn ] = useIsAuthenticated()
-  const [isOpen, setIsOpen] = React.useState(false)
-  const { login, logout } = useWallet()
+  // const [ isLoggedIn ] = useIsAuthenticated()
+  const [ isOpen, setIsOpen ] = React.useState(false)
+  const { login, logout, loggedInWWallet } = useWallet()
 
-  const toggle = () => {
-    setIsOpen(!isOpen);
-    login();
-  };
+  const handleLogin = () => {
+    setIsOpen(!isOpen)
+    login()
+  }
 
   return (
     <NavBarContainer>
-      <Link as={RouterLink} to={'/'}>
+      <Link as={RouterLink} to={'/'} zIndex={2000}>
         <Logo
           w="100px"
         />
       </Link>
       <Spacer />
-      <ButtonGroup alignItems={'center'}>
+      <ButtonGroup alignItems={'center'} zIndex={2000}>
         <ColorModeToggle />
-        {isLoggedIn ? (
+        {loggedInWWallet ? (
           <Menu>
             <MenuButton
               as={IconButton}
@@ -108,7 +107,7 @@ export const NavBar = () => {
             </MenuList>
           </Menu>
         ):(
-          <Button onClick={() => toggle()}>Login</Button>
+          <Button onClick={() => handleLogin()}>Login</Button>
         )}
       </ButtonGroup>
     </NavBarContainer>

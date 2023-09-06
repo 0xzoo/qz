@@ -1,78 +1,72 @@
 import React, { createContext, useState, useCallback, useMemo } from 'react'
-import { usePolybase } from '@polybase/react'
-import { auth } from './useLogin'
+import { usePolybase, useAuth } from '@polybase/react'
 import { useLogin } from './useLogin'
-import { ethPersonalSign } from '@polybase/eth'
+// import { ethPersonalSign } from '@polybase/eth'
 
 export interface WalletContextValue {
-  privateKey: string | null
-  publicKey: string | null
+  publicKey: string | undefined
   login: () => void
   logout: () => void
-  // skipSigning: () => void
-  reinforceSigning: () => void
+  forceSigning: () => void
+  loggedInWWallet: boolean
 }
 
 export const WalletContext = createContext<WalletContextValue>({
-  privateKey: null,
-  publicKey: null,
+  publicKey: undefined,
   login: () => {},
   logout: () => {},
-  // skipSigning: () => {},
-  reinforceSigning: () => {}
+  forceSigning: () => {},
+  loggedInWWallet: false,
 })
 
 export interface WalletProviderProps {
   children: React.ReactNode
 }
 
-export function WalletProvider({ children }: WalletProviderProps) {
-  const [privateKey, setPrivateKey] = useState<WalletContextValue['privateKey']>(null)
-  const [publicKey, setPublicKey] = useState<WalletContextValue['publicKey']>(null)
+export function WalletProvider ({ children }: WalletProviderProps) {
+  const [loggedInWWallet, setLoggedInWWallet] = useState<boolean>(false)
+  const [publicKey, setPublicKey] = useState<WalletContextValue['publicKey']>()
   const polybase = usePolybase()
+  const {auth} = useAuth()
 
   const login = useCallback(async () => {
-    const wallet = await useLogin()
-    setPrivateKey(wallet.privateKey)
-    setPublicKey(wallet.publicKey)
+    if (!loggedInWWallet) logout()
+    const pk = await useLogin(auth, polybase).catch((e) => {throw e})
+
+    setPublicKey(pk)
+    setLoggedInWWallet(true)
+    if (!pk) console.log('should not be logged in')
   }, [])
 
   const logout = useCallback(async () => {
-    setPrivateKey(null)
-    setPublicKey(null)
+    console.log('logging out')
+    setPublicKey(undefined)
 
     await auth.signOut()
-  }, [])
-
-  // const skipSigning = useCallback(() => {
-  //   polybase.signer(async (data: string) => {
-  //     return null
-  //   })
-  // }, [])
+    setLoggedInWWallet(false)
+  }, [publicKey])
   
-  const reinforceSigning = () => {
-    if (privateKey) {
-      polybase.signer(async (data: string) => {
-        return { h: 'eth-personal-sign', sig: ethPersonalSign(privateKey, data) }
-      })
-    } 
+  const forceSigning = () => {
+    // if (privateKey) {
+    //   polybase.signer(async (data: string) => {
+    //     return { h: 'eth-personal-sign', sig: ethPersonalSign(privateKey, data) }
+    //   })
+    // } 
     // else {
     //   login()
     // }
   }
 
   const value = useMemo(() => ({
-    privateKey,
     publicKey,
     login,
     logout,
-    // skipSigning,
-    reinforceSigning
-  }), [publicKey, privateKey])
+    forceSigning,
+    loggedInWWallet
+  }), [publicKey, loggedInWWallet])
 
   return (
-    <WalletContext.Provider value={value}
-    >
+    <WalletContext.Provider value={value}>
       {children}
     </WalletContext.Provider>
   )

@@ -17,7 +17,7 @@ const Home = () => {
   const query = polybase.collection('Qz').sort('timestamp', 'desc')
   const { data, loading } = useCollection(query)
 
-  const popQuery = polybase.collection('Qz').sort('numAz', 'desc')
+  const popQuery = polybase.collection('Qz').sort('pubAz', 'desc')
   const { data: popData, loading: popLoading } = useCollection(popQuery)
 
   // !fix change to load data on view load

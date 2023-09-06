@@ -2,7 +2,8 @@ import {
   useRadio,
   Box,
   useRadioGroup,
-  Stack
+  Stack,
+  useColorModeValue
 } from '@chakra-ui/react'
 
 
@@ -13,7 +14,7 @@ type AzRadioProps = {
 
 export const AzRadio = ({data, onChange}: AzRadioProps) => {
   const { getRootProps, getRadioProps } = useRadioGroup({
-    name: "test",
+    name: "azRadio",
     defaultValue: "two",
     onChange: onChange
   })
@@ -50,16 +51,18 @@ const CustomRadio = (props: any) => {
         cursor='pointer'
         borderWidth='1px'
         borderRadius='md'
+        // borderColor={useColorModeValue('','')}
         boxShadow='md'
+        bg={useColorModeValue('red.100','gray.700')}
         px={5}
         py={3}
         _checked={{
-          bg: 'teal.600',
-          color: 'white',
-          borderColor: 'teal.600',
+          bg: useColorModeValue('white','teal.600'),
+          color: useColorModeValue('gray.700','gray.200'),
+          borderColor: useColorModeValue('teal.600',''),
         }}
         _focus={{
-          boxShadow: 'outline',
+          // boxShadow: 'outline',
         }}
       >
         {props.children}

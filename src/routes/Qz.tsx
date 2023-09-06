@@ -1,12 +1,22 @@
-import React, { useEffect, useState, useContext, useCallback } from "react"
-import { useNavigate, useLoaderData } from 'react-router-dom'
+import React, {
+  useEffect,
+  useState,
+  useCallback
+} from "react"
+import {
+  useNavigate,
+  Form,
+  useParams,
+  // useSearchParams
+} from 'react-router-dom'
 import {
   usePolybase,
   useAuth,
-  // useCollection
+  useDocument,
+  useCollection
 } from "@polybase/react"
 // import { listAzToQ } from "../pb/functions"
-import { secp256k1, decodeFromString } from "@polybase/util"
+// import { secp256k1, decodeFromString } from "@polybase/util"
 import { nanoid } from 'nanoid'
 import {
   Button,
@@ -17,44 +27,46 @@ import {
   // DrawerHeader,
   DrawerOverlay,
   DrawerContent,
-  DrawerCloseButton,
+  // DrawerCloseButton,
   useDisclosure,
   useColorModeValue,
 } from '@chakra-ui/react'
+import {
+  ChevronLeftIcon
+} from '@chakra-ui/icons'
 import { 
   // Az as AType, 
   Qz as QType
 } from "../types/types"
-// import { getPublicKey } from "../auth/useLogin"
-import { WalletContext } from '../auth/WalletProvider'
+import { useWallet } from "../auth/useWallet"
 import { QA } from '../components/qA'
 // import { CollectionList } from "@polybase/client"
-// import { useWallet } from "../auth/useWallet"
+
 
 
 export const Qz = () => {
   const polybase = usePolybase()
   const navigate = useNavigate()
+  const { state } = useAuth()
   const { isOpen, onOpen, onClose } = useDisclosure()
   // const [ currentQSet, setCurrentQSet ] = useState()
+  const { qId } = useParams()
   const [ currentQ, setCurrentQ ] = useState<QType>()
   // const [ userAz, setUserAz ] = useState<AType[] | null>(null)
-  const [ qIndex, setQIndex ] = useState<string>()
+  const [ qIndex, setQIndex ] = useState<number>()
   const [ value, setValue ] = useState<string>("")
   const [ isPrivateA, setIsPrivateA ] = useState<boolean>(false)
   const [ importance, setImportance ] = useState<number>()
   // const [ asset, setAsset ] = useState<string>()
   const [ response, setResponse ] = useState<string>("")
-  const authState = useAuth().state;
-  const wallet = useContext(WalletContext)
-  // const { skipSigning, reinforceSigning } = useWallet()
-  console.log('Qz reloaded')
+  const { publicKey, login, loggedInWWallet } = useWallet()
 
-  // const { data: qData, error, loading } = useDocument(
-  //   qId ? polybase.collection('Qz').record(qId) : null,
-  // )
+  const { data: qzData } = useCollection(polybase.collection('Qz').sort('timestamp', 'asc'))
+  console.log('qzData', qzData)
+  const { data: qData, loading: qLoading } = useDocument(polybase.collection('Qz').record(qId as string))
+  console.log('qData',qData)
 
-  const data = useLoaderData() as any
+  // const data = useLoaderData() as any
   // console.log(data)
   // create currentQSet starting with current qId length 5
 
@@ -89,99 +101,96 @@ export const Qz = () => {
   // console.log(priorAz)
 
   useEffect(() => {
+    console.log('opening')
     onOpen()
-
-    const qData= data.data as QType
-    setCurrentQ(qData)
   },[])
+
+  useEffect(() => {
+    console.log('qLoading', qLoading)
+    setCurrentQ(qData?.data)
+  },[qLoading])
+
+  // useEffect(() => {
+  //   console.log(navigation.state)
+  //   if (navigation.state === "loading" && !isOpen) navigate("/")
+  // },[isOpen])
 
   const onCloseQz = () => {
     onClose()
-    navigate("/")
+  }
+
+  const onSkipQ = () => {
+    
+  }
+
+  const handleLogin = () => {
+    login()
   }
 
   const onSubmitA = async () => {
-    switch (data.type) {
-      case value:
-        
-        break;
+    console.log(loggedInWWallet)
+    if (!currentQ) return
     
-      default:
-        break;
-    }
-    
-    const publicKey = authState?.userId as string
-    const user = await polybase.collection('User').record(publicKey).get()
+    const user = publicKey && await polybase.collection('User').record(state?.userId as string).get().catch((e) => console.log('error getting user from db', e))
+    const q = await polybase.collection('Qz').record(currentQ.id as string).get().catch((e) => {throw e})
     const valueOr = value === "" ? undefined : value
     const timestamp = Date.now()
 
     const newA: any = [
       nanoid(),
       user,
-      data,
+      q,
       timestamp,
-      isPrivateA,
       qIndex,
       valueOr,
-      importance,
-      // asset
+      importance
     ]
 
     if (isPrivateA) {
-      // encrypt asymm
-      const publicKey = wallet.publicKey as string
-      console.log(publicKey)
-      const pkUintArray = decodeFromString(publicKey, 'hex')
-      console.log(pkUintArray)
-      console.log(typeof qIndex)
+    //   // encrypt asymm
+    //   // const publicKey = wallet.publicKey as string
+    //   console.log(publicKey)
+    //   const pkUintArray = decodeFromString(publicKey as string, 'hex')
+    //   console.log(pkUintArray)
+    //   console.log(typeof qIndex)
         
-      // const strDataToBeEncrypted = decodeFromString(response as string, 'utf8')
-      if (response) {console.log('ye ok')}
-      const encryptedValueAsHexStr = await secp256k1.asymmetricEncryptToEncoding(
-        pkUintArray,
-        response as string
-      );
+    //   // const strDataToBeEncrypted = decodeFromString(response as string, 'utf8')
+    //   if (response) {console.log('ye ok')}
+    //   const encryptedValueAsHexStr = await secp256k1.asymmetricEncryptToEncoding(
+    //     pkUintArray,
+    //     response as string
+    //   );
 
-      console.log('encryptedValueAsHexStr', encryptedValueAsHexStr)
+    //   console.log('encryptedValueAsHexStr', encryptedValueAsHexStr)
     } 
-    // if (typeof qIndex != null) {
-    //   newA.push(qIndex as unknown as number)
-    // }
-    // !fix
-    // if (value !== '') newA.push(value as string)
-    // if (typeof importance != null) newA.push(importance as number)
 
-    // const pk = getPublicKey(userId)
     console.log('newA', newA)
-    // console.log('pk', pk)
-    await polybase.collection('Az').create(newA).catch((e) => console.log('az err', e))
-    // skipSigning()
-    await polybase.collection('Qz').record(data.id).call("incrNumAz", [data.id]).catch((e) => console.log(e))
-    // reinforceSigning()
-    // generatePath("/users/:id", { id: "42" });
-    // navigate
+    await polybase.collection('PubAz').create(newA).catch((e) => {throw e})
+    await polybase.collection('Qz').record(currentQ.id).call("incrPubAz", [currentQ.id]).catch((e) => {throw e})
   }
 
   const handleMcRadio = useCallback((i: string) => {
-    const qIndex = data.data.az.indexOf(i)
-    setQIndex(qIndex)
-    const qIndexString = String(qIndex)
-    setResponse(qIndexString)
-  },[setQIndex, setResponse])
+    if (currentQ && currentQ.az) {
+      const qIndex = currentQ.az.indexOf(i)
+      setQIndex(qIndex)
+      const qIndexString = String(qIndex)
+      setResponse(qIndexString)
+    }
+  },[currentQ])
   
   const handleIsPrivate = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setIsPrivateA(e.target.checked)
-  },[setIsPrivateA])
+  },[])
   
   const handleImportance = useCallback((i: number) => {
     setImportance(i)
     console.log(i)
-  },[setImportance])
+  },[])
   
   const handleValue = useCallback((s: string) => {
     setValue(s)
     setResponse(s)
-  },[setValue, setResponse])
+  },[])
 
   const initialRef = React.useRef(null)  
 
@@ -191,38 +200,66 @@ export const Qz = () => {
     handleImportance,
     handleValue,
     initialRef,
-    currentQ 
+    currentQ: currentQ as QType
   }
 
   return (
     <Drawer
       isOpen={isOpen}
-      placement='bottom'
+      placement='right'
       onClose={onCloseQz}
+      onCloseComplete={() => navigate('/')}
       size={'full'}
       blockScrollOnMount={false}
       initialFocusRef={initialRef}
     >
       <DrawerOverlay />
-      <DrawerContent pt={20} bgColor={useColorModeValue('#ff0', 'gray.700')}>
-        {/* {currentQSet && <DrawerHeader>Create your account</DrawerHeader>} */}
-        <DrawerBody>
-          <QA {...QzContextProps} />
-        </DrawerBody>
-        <DrawerFooter>
-          <Flex direction={'row'} justifyContent={'space-between'} w={'100%'}>
-            <Button variant='outline' mr={3} onClick={onCloseQz}>
-              Save and Quit
-            </Button>
-            {/* !fix users should be able to skip even if theyve responded */}
-            <Button colorScheme='blue' onClick={onSubmitA}>
-              {response === "" ? ('Skip'):('Save and Next')}
-            </Button>
-          </Flex>
-        </DrawerFooter>
-        <DrawerCloseButton top={20} size={'lg'}/>
-        {/* <ArrowNavs /> */}
-      </DrawerContent>
+      <Form>
+        <DrawerContent pt={20} bgColor={useColorModeValue('#ff0', 'gray.700')}>
+          <Button
+            aria-label='Back to Qz'
+            onClick={onCloseQz}
+            bg={'transparent'}
+            w={'fit-content'}
+            variant={'link'} ml={4}
+            fontWeight={'normal'}
+            color={useColorModeValue('gray.700', 'gray.200')}
+          >
+            <ChevronLeftIcon boxSize={10} /> Back to Qz
+          </Button>
+          <DrawerBody>
+            { currentQ && <QA {...QzContextProps} /> }
+          </DrawerBody>
+          <DrawerFooter>
+            <Flex direction={'row'} justifyContent={'space-between'} w={'100%'}>
+              <Button variant='outline' mr={3} onClick={onSkipQ}>
+                Skip
+              </Button>
+              {/* !fix users should be able to skip even if theyve responded */}
+              { loggedInWWallet ? (
+                <Button
+                  type='submit'
+                  colorScheme='blue'
+                  onClick={onSubmitA}
+                  isDisabled={response === '' ? true : false}
+                >
+                  Save
+                </Button>
+              ) : response === '' ? (
+                <Button colorScheme='blue' onClick={login}>
+                  Login
+                </Button>
+              ):(
+                <Button colorScheme='blue' onClick={handleLogin}>
+                  Login to save
+                </Button>
+              )}
+            </Flex>
+          </DrawerFooter>
+          {/* <DrawerCloseButton top={20} size={'lg'}/> */}
+          {/* <ArrowNavs /> */}
+        </DrawerContent>
+      </Form>
     </Drawer>
   )
 }

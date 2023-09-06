@@ -8,16 +8,14 @@ import {
   Spinner,
   List,
   ListItem,
-  Link,
-  Flex,
-  Text,
   useTabPanel,
+  useColorModeValue,
 } from '@chakra-ui/react'
+import { QCardSmall } from './qCardSmall'
 import { 
-  Link as RouterLink,
   generatePath
 } from "react-router-dom"
-import { useSwipeable } from 'react-swipeable'
+import { SwipeEventData, useSwipeable } from 'react-swipeable'
 // import { InView } from 'react-intersection-observer'
 import { CollectionList } from "@polybase/client"
 
@@ -53,9 +51,9 @@ const CustomTabPanel: React.ForwardRefExoticComponent<CustomTabPanelProps> = Rea
       // borderRight={['.5px solid']}
       w={['100vw', 400, 500]}
       flexShrink={0}
-      scrollSnapAlign={'start'}
       ref={ref}
       overflowY={'scroll'}
+      display={'inline-block'}
     >
       {panelProps.children}
     </Box>
@@ -65,27 +63,34 @@ const CustomTabPanel: React.ForwardRefExoticComponent<CustomTabPanelProps> = Rea
 
 export const QzTabs = ({...QzPanelsProps}: QzPanelsProps): React.ReactElement => {
   const [ tabIndex, setTabIndex ] = useState<number>(0)
+  const [ translateValue, setTranslateValue ] = useState<number>(0)
   const { categories } = QzPanelsProps
   const refs = categories.reduce((acc:{[key: number]: React.RefObject<HTMLDivElement>}, category) => {
     acc[category.id] = useRef(null);
     return acc
   }, {})
   const tabMax = categories.length - 1
-  // const scrollRef = useRef(null)
-  // const scrollSnap = useScrollSnap({ ref: scrollRef, duration: 200, delay: 50 })
+  const borderColor = useColorModeValue('gray.300','gray.600')
 
-  // useEffect(() => {
-  //   console.log(tabIndex)
+  const calcTabsTranslate = (index: number) => {
+    const vWidth = window.innerWidth
+    if (vWidth > 768) {
+      return (0 - index * 500)
+    } else if (vWidth > 480) {
+      return (0 - index * 400)
+    } else {
+      return (0 - index * vWidth)
+    }
+  }
 
-  //   // setTabIndex(tabIndex)
-  // },[tabIndex])
+  const handleTabsTranslate = (index: number) => {
+    const transX = calcTabsTranslate(index)
+    setTranslateValue(transX)
+  }
 
   const handleTabsChange = (index: number) => {
     setTabIndex(index)
-    refs[index].current?.scrollIntoView({
-      behavior: 'smooth',
-      block: 'start',
-    });
+    handleTabsTranslate(index)
   }
 
   // function handleScroll (e: React.UIEvent<HTMLDivElement, UIEvent>) {
@@ -99,23 +104,53 @@ export const QzTabs = ({...QzPanelsProps}: QzPanelsProps): React.ReactElement =>
   //   console.log('entry', entry)
   // }
 
-
   const swipeHandlers = useSwipeable({
-    onSwiped: (eventData) => {
-      console.log("User Swiped!", eventData)
-    },
-    onSwipedLeft: () => {
-      if (tabIndex !== tabMax) {
-        const newIndex = tabIndex + 1
-        setTabIndex(newIndex)
+    onSwipedLeft: (e: SwipeEventData) => {
+      const dVx = Math.abs(e.vxvy[0])
+      const swipeDur = e.absX / dVx
+      const minSwipe = (swipeDur < 350) && (dVx > .05)
+      const threshd = dVx > .09
+      const overHalf = (window.innerWidth / e.absX) < 2
+      // console.log('Swipe!', dVx, (dVx / swipeDur), swipeDur, minSwipe)
+      if (overHalf || threshd || minSwipe) {
+        if (tabIndex !== tabMax) {
+          // console.log('Succ',e)
+          const newIndex = tabIndex + 1
+          setTabIndex(newIndex)
+          handleTabsTranslate(newIndex)
+          // const transX = calcTabsTranslate(newIndex)
+          // console.log(transX)
+          // const tP = document.getElementById('TabPanels')
+          // tP?.scrollTo(transX, 0)
+        }
       }
     },
-    onSwipedRight: (e) => {
-      console.log(e)
-      const newIndex = Math.min(tabIndex - 1, 0)
-      if (tabIndex) setTabIndex(newIndex)
-    }
+    onSwipedRight: (e: SwipeEventData) => {
+      const dVx = Math.abs(e.vxvy[0])
+      const swipeDur = e.absX / dVx
+      const minSwipe = (swipeDur < 350) && (dVx > .05)
+      const threshd = dVx > .09
+      const overHalf = (window.innerWidth / e.absX) < 2
+      // console.log('Swipe!', dVx, (dVx / swipeDur), swipeDur, minSwipe)
+      if (overHalf || threshd || minSwipe) {
+        // console.log('Succ')
+        const newIndex = Math.min(tabIndex - 1, 0)
+        if (tabIndex) {
+          setTabIndex(newIndex)
+          handleTabsTranslate(newIndex)
+          // const transX = calcTabsTranslate(newIndex)
+          // console.log(transX)
+          // const tP = document.getElementById('TabPanels')
+          // tP?.scrollTo(transX, 0)
+        }
+      }
+    },
+    delta: 10,
+    // touchEventOptions: { passive: false }
   })
+
+  // const tabPanels = useRef()
+
   
   return (
     <Tabs
@@ -123,79 +158,71 @@ export const QzTabs = ({...QzPanelsProps}: QzPanelsProps): React.ReactElement =>
       lazyBehavior={'keepMounted'}
       index={tabIndex}
       onChange={handleTabsChange}
+      colorScheme={useColorModeValue('messenger','linkedin')}
       h={'100%'}
       display={'flex'}
       flexDir={'column'}
+      id="SwipeController"
+      overflowX={'hidden'}
+      overflowY={'clip'}
+      p={0}
+      w={['100vw', 400, 500]}
+      {...swipeHandlers}
     >
       <TabList
         position={['revert','absolute']}
-        top={8}
+        top={4}
         left={120}
-        zIndex={2001}
         flexShrink={0}
+        fontFamily={'Poppins, sans-serif'}
       >
         {categories.map((category: CategoryProps) => (
-          <Tab key={category.id}>{category.name}</Tab>
+          <Tab
+            key={category.id}
+            fontSize={['lg','2xl']}
+            fontWeight={[400, 500]}
+          >
+            {category.name.toLowerCase()}
+          </Tab>
         ))}
       </TabList>
-
-      <Box
-        id="SwipeController"
+      <TabPanels
+        id="TabPanels"
+        display={'flex'}
+        flexDir={'row'}
+        // overflowX={['scroll', 'revert']}
         overflowY={'clip'}
+        transform={'translate(' + translateValue + 'px)'}
+        transition={'transform 0.5s ease'}
+        // ref={tabPanels}
+        // translateX={[0 - tabIndex * window.innerWidth, 0 -  tabIndex * 400, 0 - tabIndex *  500]}
+        // scrollSnapType={'x mandatory'}
+        // onScroll={handleScroll}
         h={'100%'}
-        p={0}
-        w={['100vw', 400, 500]}
-        {...swipeHandlers}
       >
-          
-        <TabPanels
-          id="TabPanels"
-          display={'flex'}
-          flexDir={'row'}
-          overflowX={['scroll','hidden']}
-          overflowY={'clip'}
-          scrollSnapType={'x mandatory'}
-          // onScroll={handleScroll}
-          h={'100%'}
-        >
-          {categories.map((category: CategoryProps, index: number) => (
-            <CustomTabPanel
-              key={index}
-              id={index}
-              ref={refs[index]}
-            >
-              { category.loading ? (
-                <Spinner />
-              ) : (
-                <List>
-                  {category.data?.data.map((res: any, i: number) => {
-                    const path = generatePath("/q/:qId", { qId: res.data.id })
-                    return (
-                      <ListItem key={i}>
-                        <Link as={RouterLink} to={path}>
-                          <Flex
-                            direction={'row'}
-                            borderBottom='1px solid'
-                            borderColor='gray.500'
-                            p={3}
-                            pt={4}
-                            pb={4}
-                            justifyContent={'space-between'}
-                            w={'100%'}
-                          >
-                            <Text fontSize='md'>{res.data.stem}</Text>
-                            <Text>{res.data.numAz}</Text>
-                          </Flex>
-                        </Link>
-                      </ListItem>
-                    )
-                  })}
-                </List>
-              )}
-            </CustomTabPanel>
-          ))}
-        </TabPanels>
-      </Box>
+        {categories.map((category: CategoryProps, index: number) => (
+          <CustomTabPanel
+            key={index}
+            id={index}
+            ref={refs[index]}
+          >
+            { category.loading ? (
+              <Spinner />
+            ) : (
+              <List>
+                {category.data?.data.map((res: any, i: number) => {
+                  const path = generatePath("/q/:qId", { qId: res.data.id })
+                  return (
+                    <ListItem key={i}>
+                      <QCardSmall borderColor={borderColor} path={path} q={res.data} />
+                    </ListItem>
+                  )
+                })}
+              </List>
+            )}
+          </CustomTabPanel>
+        ))}
+      </TabPanels>
     </Tabs>
   )
 }

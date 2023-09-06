@@ -1,58 +1,114 @@
 import * as eth from '@polybase/eth'
-import { secp256k1, encodeToString } from '@polybase/util'
+import { 
+  secp256k1,
+  encodeToString,
+  decodeFromString,
+  aescbc,
+  EncryptedDataAesCbc256
+} from '@polybase/util'
 import { Polybase } from '@polybase/client'
 import { ethPersonalSign } from '@polybase/eth'
-import { Auth } from '@polybase/auth'
+import { Auth } from '@polybase/react/dist/auth/types'
 import { User } from '../types/types'
+import { AuthState } from '@polybase/auth'
 
-// Auth to use for everything
-export const auth = new Auth()
-const polybase = new Polybase({ defaultNamespace: "pk/0x4d5de3518af7848d4997a0749bcdfa49582ba156231afdb227818cf802dc597d593c0faa1604eaa2e0ac3867555cf07fe0c902e1b7893cd7a9b3feb0e4bd1489/Qz4" });
+enum AuthType {
+  MM = 'metamask',
+  EMAIL = 'email'
+}
 
-export const useLogin = async () => {
+export const useLogin = async (auth: Auth, polybase: Polybase) => {
+  
   // get account via metamask (doesnt work on frame?)
-  const accounts = await eth.requestAccounts()
-  const account = accounts[0]
-  const wallet = await getWallet(account)
+  const authState = await auth.signIn({force: true}).catch((e) => { throw e })
+  if (authState == null) throw 'err' // !fix give error
+
+  const wallet = await getWallet(authState, polybase).catch((e) => {throw e})
+  if (!wallet.publicKey) {
+    auth.signOut()
+    return
+  }
 
   // Update the signer
   polybase.signer(async (data: string) => {
-    return { h: 'eth-personal-sign', sig: ethPersonalSign(wallet.privateKey, data) }
+    return authState.type == AuthType.EMAIL ?
+      { h: 'eth-personal-sign', sig: ethPersonalSign(wallet.privateKey, data) }
+    : null
   })
 
-  await auth.signIn().catch((e) => {throw e})
-  return wallet
+  return wallet.publicKey
 }
 
-export const getWallet = async (account: string) => {
+const getWallet = async (authState: AuthState, polybase: Polybase) => {
+  // consts
+  const { type, email, userId } = authState
+  const account = type == AuthType.EMAIL ? authState.publicKey as string : userId as string
+  const accountToUintArray = decodeFromString(account, 'utf8')
+  const aSlice = accountToUintArray.slice(98)
   // Lookup account
-  const col = polybase.collection<User>('User')
-  // const doc = col.record(account)
-  const user = await getUser(account)
+  const user = await getUser(userId as string, polybase).catch((e) => {throw e})
 
-  // if user exists, get private key and decrypt
+  //
+  ////// if user exists, decrypt private key
   if (user && user.exists()) {
     const encryptedPrivateKey = user.data?.wpvKey as string
-    const privateKey = await eth.decrypt(encryptedPrivateKey, account)
     const publicKey = user.data?.wpbKey as string
-    return { privateKey, publicKey }
-  // otherwise create new user wallet
+    let privateKey: string
+
+    //// mm
+    if (type == AuthType.MM) {
+      privateKey = await eth.decrypt(encryptedPrivateKey, account).catch((e) => {throw e})
+      return { privateKey, publicKey }
+
+    //// email
+    } else {
+      // divvy base nonce and decode
+      const encryptedPrivateKeyBase = decodeFromString(encryptedPrivateKey.slice(0,98), 'hex')
+      const encryptedPrivateKeyNonce = decodeFromString(encryptedPrivateKey.slice(98), 'hex')
+      const encryptedPrivateKeyVersion: EncryptedDataAesCbc256["version"] = 'aes-cbc-256/symmetric'
+
+      // aes decrypt
+      const encryptedData: EncryptedDataAesCbc256 = {
+        ciphertext: encryptedPrivateKeyBase,
+        nonce: encryptedPrivateKeyNonce,
+        version: encryptedPrivateKeyVersion
+      }
+      const privateKeyBuff = await aescbc.symmetricDecrypt(aSlice, encryptedData).catch((e) => {throw e}) as Uint8Array
+      privateKey = encodeToString(privateKeyBuff, 'hex')
+
+      return { privateKey, publicKey }
+    }
+  ////// otherwise create new user with wallet
   } else {
-    // Generate keys
-    const wallet = await secp256k1.generateKeyPair()
-    const privateKeyBuff = wallet.privateKey
-    const privateKey = encodeToString( privateKeyBuff, 'hex')
-    const encryptedPrivateKey = await eth.encrypt(privateKey, account)
-    const publicKey = encodeToString( wallet.publicKey, 'hex')
+    const col = polybase.collection<User>('User')
+    const timestamp = Date.now()
 
-    polybase.signer(async (data: string) => {
-      return { h: 'eth-personal-sign', sig: ethPersonalSign(privateKey, data) }
-    })
+    //// generate keys
+    const privateKeyBuff = secp256k1.generatePrivateKey()
+    const privateKey = encodeToString(privateKeyBuff, 'hex')
+    const publicKey = encodeToString(secp256k1.getPublicKey64(privateKeyBuff), 'hex')
+    let encryptedPrivateKey: string
 
-    await col.create([account, publicKey, encryptedPrivateKey]).catch((e) => {
-      console.error(e)
-      throw e
-    })
+    //// if mm (request to use eth pvk to encrypt)
+    if (type == AuthType.MM) {
+      encryptedPrivateKey = await eth.encrypt(privateKey, account).catch((e => {throw e}))
+
+      //// create user account
+      await col.create([userId as string, publicKey, encryptedPrivateKey, timestamp]).catch((e) => {throw e})
+      
+    //// if email
+    } else if (type == AuthType.EMAIL) {
+      // aes encrypt
+      const encryptedPrivateKeyAes = await aescbc.symmetricEncrypt(aSlice, privateKeyBuff)
+      // stringify base, nonce
+      const encryptedPrivateKeyBase = encodeToString(encryptedPrivateKeyAes.ciphertext, 'hex')
+      const encryptedPrivateKeyNonce = encodeToString(encryptedPrivateKeyAes.nonce, 'hex')
+      // join base nonce into one string
+      encryptedPrivateKey = encryptedPrivateKeyBase + encryptedPrivateKeyNonce
+
+      //// create user account
+      await col.create([userId as string, publicKey, encryptedPrivateKey, timestamp, email as string]).catch((e) => {throw e})
+    }
 
     return { privateKey, publicKey }
   }
@@ -70,15 +126,15 @@ export const getWallet = async (account: string) => {
 //   })
 // }
 
-const getUser = async (account: string) => {
+const getUser = async (account: string, polybase: Polybase) => {
   const col = polybase.collection<User>('User')
   const doc = col.record(account)
-  const user = await doc.get().catch(() => null)
+  const user = await doc.get().catch(() => null).catch((e) => {throw e})
   return user
 }
 
-export const getPublicKey = async (account: string) => {
-  const user = await getUser(account)
-  const publicKey = user && user.data?.publicKey
-  return publicKey
-}
+// export const getPublicKey = async (account: string) => {
+//   const user = await getUser(account)
+//   const publicKey = user && user.data?.publicKey
+//   return publicKey
+// }

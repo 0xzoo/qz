@@ -89,6 +89,7 @@ const overrides = {
     fonts: {
       body: "Libre Franklin, sans-serif",
       heading: "Libre Franklin, serif",
+      // tabs: "Poppins, sans-serif"
     },
   },
   config,

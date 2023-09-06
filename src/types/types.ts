@@ -13,9 +13,11 @@ export interface User {
   wpbKey: string; // indapp wallet publicKey as hex
   wpvKey: string; // indapp wallet privateKey as encrypted hex
   tokenBalance: number; // indapp token balance
+  createdAt: number; // timestamp
   name?: string;
   desc?: string;
   twitter?: string;
+  email?: string;
 }
 
 export interface Owner {
@@ -25,34 +27,23 @@ export interface Owner {
 
 export interface Qz {
   id: string;
-  owner: Owner;
+  owner: User;
   stem: string;
   type: string;
   timestamp: number;
-  numAz: number;
+  pubAz: number;
+  prvAz: number;
+  forks: string[];
+  followUps: string[];
+  parent?: string;
   az?: string[];
   importance?: number;
   tags?: string[];
   order?: number;
   required?: boolean;
   assets?: string[];
-  parent? : string;
+  childType?: string;
 }
-
-export type QType = [
-  id: string,
-  owner: User,
-  stem: string,
-  type: string,
-  timestamp: number,
-  numAz: number,
-  az?: string[],
-  importance?: number,
-  tags?: string[],
-  order?: number,
-  required?: boolean,
-  assets?: string[]
-]
 
 export interface Az {
   id: string;
@@ -67,7 +58,22 @@ export interface Az {
   asset?: string;
 }
 
-export     type AType = [
+// export type QType = [
+//   id: string,
+//   owner: User,
+//   stem: string,
+//   type: string,
+//   timestamp: number,
+//   numAz: number,
+//   az?: string[],
+//   importance?: number,
+//   tags?: string[],
+//   order?: number,
+//   required?: boolean,
+//   assets?: string[]
+// ]
+
+export type AType = [
   id: string,
   owner: Owner,
   qId: {
