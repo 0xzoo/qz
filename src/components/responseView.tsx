@@ -1,42 +1,50 @@
-// import { useState } from 'react'
+import { useState } from 'react'
 import { AzRadio } from './azRadio'
-import { Qz } from '../types/types'
+import { Qz, Az } from '../types/types'
 import {
   Textarea,
   useColorModeValue
 } from '@chakra-ui/react'
+import { CollectionRecordResponse } from '@polybase/client'
 
 type responseViewProps = {
-  questionType: string
   handleMcRadio: (i: string) => void
   value: string | undefined
-  liftValue: (e: React.ChangeEvent<HTMLTextAreaElement>) => void
+  handleValue: (e: React.ChangeEvent<HTMLTextAreaElement>) => void
   currentQ: Qz
+  userAz: CollectionRecordResponse<Az>[] | undefined
   initialRef: React.MutableRefObject<null>
 }
 
 export const ResponseView = (props: responseViewProps) => {
-  // const [ value, setValue ] = useState<string>()
+  const bgColor = useColorModeValue('white','gray.700')
+  const [ edited, setEdited ] = useState<boolean>(false)
+  const [ newValue, setNewValue ] = useState<string>()
+  const placeholder = props.value
+  const priorA = props.userAz && props.userAz[0]
 
-  // const handleValue = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-  //   setValue(e.target.value)
-  // }
+  const handleNewValue = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    if (!edited) setEdited(true)
+    setNewValue(e.target.value)
+    props.handleValue(e)
+  }
 
-  switch(props.questionType) {
+  switch(props.currentQ.type) {
     case 'mc':
       return (
-        <AzRadio data={props.currentQ?.az as string[]} onChange={props.handleMcRadio}/>
+        <AzRadio data={props.currentQ?.az as string[]} priorA={priorA} onChange={props.handleMcRadio}/>
       )
     case 'shortText':
       return (
         <Textarea
           name='answer'
-          value={props.value}
+          value={newValue}
+          placeholder={placeholder}
           size={'sm'}
           h={100}
-          bg={useColorModeValue('white','gray.700')}
+          bg={bgColor}
           borderColor={'#e4'}
-          onChange={props.liftValue}
+          onChange={handleNewValue}
           ref={props.initialRef}
         />
       )
@@ -44,12 +52,13 @@ export const ResponseView = (props: responseViewProps) => {
       return (
         <Textarea
           name='answer'
-          value={props.value}
+          value={newValue}
+          placeholder={placeholder}
           size={'lg'}
           h={200}
-          bg={useColorModeValue('white','gray.700')}
+          bg={bgColor}
           borderColor={'#e4'}
-          onChange={props.liftValue}
+          onChange={props.handleValue}
           ref={props.initialRef}
         />
       )

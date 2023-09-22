@@ -9,15 +9,16 @@ export interface PublicKey {
 
 export interface User {
   id: string // eth wallet publicKey as hex
-  publicKey: string; // eth wallet publicKey as PublicKey 
-  wpbKey: string; // indapp wallet publicKey as hex
-  wpvKey: string; // indapp wallet privateKey as encrypted hex
-  tokenBalance: number; // indapp token balance
-  createdAt: number; // timestamp
-  name?: string;
-  desc?: string;
-  twitter?: string;
-  email?: string;
+  publicKey: string // eth wallet publicKey as PublicKey 
+  wpbKey: string // indapp wallet publicKey as hex
+  wpvKey: string // indapp wallet privateKey as encrypted hex
+  tokenBalance: number // indapp token balance
+  createdAt: number // timestamp
+  // userName: string // 
+  name?: string
+  desc?: string
+  twitter?: string
+  email?: string
 }
 
 export interface Owner {
@@ -43,6 +44,13 @@ export interface Qz {
   required?: boolean;
   assets?: string[];
   childType?: string;
+}
+
+export enum qzType {
+  mc ='mc',
+  short ='shortText',
+  long = 'longText',
+  rank = 'ranking'
 }
 
 export interface Az {

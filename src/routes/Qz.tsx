@@ -1,19 +1,20 @@
 import React, {
   useEffect,
   useState,
-  useCallback
+  useCallback,
+  useContext
 } from "react"
 import {
-  useNavigate,
   Form,
-  useParams,
+  // useParams,
   // useSearchParams
 } from 'react-router-dom'
+import { polybase } from "../App"
 import {
   usePolybase,
   useAuth,
-  useDocument,
-  useCollection
+  // useDocument,
+  // useCollection
 } from "@polybase/react"
 // import { listAzToQ } from "../pb/functions"
 // import { secp256k1, decodeFromString } from "@polybase/util"
@@ -35,39 +36,82 @@ import {
   ChevronLeftIcon
 } from '@chakra-ui/icons'
 import { 
-  // Az as AType, 
+  Az as AType, 
   Qz as QType
 } from "../types/types"
 import { useWallet } from "../auth/useWallet"
+import { RootContext } from "./Root"
 import { QA } from '../components/qA'
+import { CollectionList, CollectionRecordResponse } from "@polybase/client"
 // import { CollectionList } from "@polybase/client"
 
+
+async function getQ (qId: string) {
+  const record: CollectionRecordResponse<QType, QType> = await polybase.collection("Qz").record(qId).get()
+  const { data: currentQData } = record
+
+  return currentQData
+}
+
+async function getQueue (qz?: CollectionRecordResponse<QType, QType>[]) {
+  let queueData
+  if (qz) {
+    queueData = qz
+  } else {
+    const records: CollectionList<QType> = await polybase.collection("Qz").sort('timestamp', 'desc').get()
+    const { data: currentQueueData } = records
+    queueData = currentQueueData
+  }
+
+  return queueData
+}
+
+async function getPriorAz (qId: string, user?: string) {
+  if (user) {
+    const records: CollectionList<AType> = await polybase.collection("PubAz")
+      .where('qId', '==', polybase.collection("Qz").record(qId))
+      .where('owner', '==', polybase.collection("User").record(user))
+      .sort('timestamp', 'desc')
+      .get()
+    const { data: priorAzData } = records
+
+    return priorAzData
+  } else {
+    return []
+  }
+}
 
 
 export const Qz = () => {
   const polybase = usePolybase()
-  const navigate = useNavigate()
   const { state } = useAuth()
   const { isOpen, onOpen, onClose } = useDisclosure()
-  // const [ currentQSet, setCurrentQSet ] = useState()
-  const { qId } = useParams()
+  const { publicKey, login, loggedInWWallet } = useWallet()
+
+  const rootContext = useContext(RootContext)
+  const qId = rootContext.searchParams?.get('q')
+  const { setSearchParams, qz, setQz } = rootContext
   const [ currentQ, setCurrentQ ] = useState<QType>()
-  // const [ userAz, setUserAz ] = useState<AType[] | null>(null)
+  const [ currentQueue, setCurrentQueue ] = useState<CollectionRecordResponse<QType, QType>[] | undefined>([])
+  const [ currentQueueIndex, setCurrentQueueIndex ] = useState<number>(0)
+  const [ userAz, setUserAz ] = useState<CollectionRecordResponse<AType, AType>[]>()
+
   const [ qIndex, setQIndex ] = useState<number>()
   const [ value, setValue ] = useState<string>("")
   const [ isPrivateA, setIsPrivateA ] = useState<boolean>(false)
   const [ importance, setImportance ] = useState<number>()
   // const [ asset, setAsset ] = useState<string>()
   const [ response, setResponse ] = useState<string>("")
-  const { publicKey, login, loggedInWWallet } = useWallet()
 
-  const { data: qzData } = useCollection(polybase.collection('Qz').sort('timestamp', 'asc'))
-  console.log('qzData', qzData)
-  const { data: qData, loading: qLoading } = useDocument(polybase.collection('Qz').record(qId as string))
-  console.log('qData',qData)
 
-  // const data = useLoaderData() as any
-  // console.log(data)
+  // const { data: qData, loading: qLoading } = useDocument(polybase.collection('Qz').record(qId as string))
+  // const currentQData = await polybase.collection("Qz")
+  // .record(qId as string)
+  // .get()
+
+
+
+  
   // create currentQSet starting with current qId length 5
 
   // Query for Qs
@@ -76,21 +120,8 @@ export const Qz = () => {
   // const query = polybase.collection('Qz').sort('timestamp', 'desc')
 
   // check against qz already answered by user
-  // const qId = data.data.id
-  // console.log(qId)
 
   // Query for prior answers to this question by this user
-  // const { data: priorAz } = useCollection(
-  //   currentQ
-  //     ? azCollectionReference
-  //       .where('qId', '==', qzCollectionReference.record(currentQ.id))
-  //     : null
-  // )
-
-  // console.log(priorAz)
-
-  // setUserAz(priorAz?.data as unknown as AType[]) 
-  
   // const { data: priorAz } = useCollection(
   //   qId
   //     ? azCollectionReference
@@ -98,29 +129,77 @@ export const Qz = () => {
   //     : null
   // )
 
-  // console.log(priorAz)
 
   useEffect(() => {
-    console.log('opening')
     onOpen()
+
+    getQ(qId as string)
+      .then(q => {
+        setCurrentQ(q)
+
+        getPriorAz(qId as string, state?.userId as string)
+          .then(az => {
+            if (az.length) {
+              setUserAz(az)
+              const newestA = az[0].data
+              switch (q.type) {
+                case 'mc':
+                  const newestAQIndex = newestA.qIndex
+                  setQIndex(newestAQIndex)
+                  break
+                case 'shortText':
+                  const newestAShortValue = newestA.value as string
+                  setValue(newestAShortValue)
+                  break
+                case 'longText':
+                  const newestALongValue = newestA.value as string
+                  setValue(newestALongValue)
+                  break
+              }
+            }
+          })
+      })
+    getQueue(qz)
+      .then(res => {
+        setCurrentQueue(res)
+      })
+    
   },[])
 
-  useEffect(() => {
-    console.log('qLoading', qLoading)
-    setCurrentQ(qData?.data)
-  },[qLoading])
+  // useEffect(() => {
+  //   setCurrentQ(currentQData)
+  // },[currentQData])
 
   // useEffect(() => {
-  //   console.log(navigation.state)
-  //   if (navigation.state === "loading" && !isOpen) navigate("/")
-  // },[isOpen])
+  //   if (!qz) {
+
+  //     // setQz(data.data)
+  //   }
+  //   setCurrentQueue(qz)
+  // },[qz])
+
+
 
   const onCloseQz = () => {
     onClose()
+    setSearchParams({})
+  }
+
+  const nextQz = () => {
+    // get next qId and set to params
+    const nextQId = currentQueue && currentQueue[currentQueueIndex + 1].id
+    console.log(nextQId)
+    const params = nextQId && { q: nextQId }
+    setCurrentQueueIndex(currentQueueIndex + 1)
+    setSearchParams(params)
+
+    // add new qA to qzArray
   }
 
   const onSkipQ = () => {
-    
+    // change index in currentQueue
+    setCurrentQueueIndex(currentQueueIndex + 1)
+    // navigate to next in queue
   }
 
   const handleLogin = () => {
@@ -128,8 +207,9 @@ export const Qz = () => {
   }
 
   const onSubmitA = async () => {
-    console.log(loggedInWWallet)
     if (!currentQ) return
+
+    // if priorA, markAEdited priorAz[0], create new PubA, dont incrPubAz
     
     const user = publicKey && await polybase.collection('User').record(state?.userId as string).get().catch((e) => console.log('error getting user from db', e))
     const q = await polybase.collection('Qz').record(currentQ.id as string).get().catch((e) => {throw e})
@@ -184,23 +264,25 @@ export const Qz = () => {
   
   const handleImportance = useCallback((i: number) => {
     setImportance(i)
-    console.log(i)
   },[])
   
-  const handleValue = useCallback((s: string) => {
-    setValue(s)
-    setResponse(s)
+  const handleValue = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setValue(e.target.value)
+    setResponse(e.target.value)
   },[])
 
   const initialRef = React.useRef(null)  
 
-  const QzContextProps = {
+  const QAProps = {
+    qIndex,
     handleMcRadio,
     handleIsPrivate,
     handleImportance,
+    value,
     handleValue,
     initialRef,
-    currentQ: currentQ as QType
+    currentQ: currentQ as QType,
+    userAz
   }
 
   return (
@@ -208,7 +290,7 @@ export const Qz = () => {
       isOpen={isOpen}
       placement='right'
       onClose={onCloseQz}
-      onCloseComplete={() => navigate('/')}
+      // onCloseComplete={() => navigate('/')}
       size={'full'}
       blockScrollOnMount={false}
       initialFocusRef={initialRef}
@@ -228,7 +310,8 @@ export const Qz = () => {
             <ChevronLeftIcon boxSize={10} /> Back to Qz
           </Button>
           <DrawerBody>
-            { currentQ && <QA {...QzContextProps} /> }
+            {/* { currentQueue?.map(())} */}
+            <QA {...QAProps} />
           </DrawerBody>
           <DrawerFooter>
             <Flex direction={'row'} justifyContent={'space-between'} w={'100%'}>
@@ -236,23 +319,35 @@ export const Qz = () => {
                 Skip
               </Button>
               {/* !fix users should be able to skip even if theyve responded */}
-              { loggedInWWallet ? (
-                <Button
-                  type='submit'
-                  colorScheme='blue'
-                  onClick={onSubmitA}
-                  isDisabled={response === '' ? true : false}
-                >
-                  Save
-                </Button>
-              ) : response === '' ? (
-                <Button colorScheme='blue' onClick={login}>
-                  Login
-                </Button>
-              ):(
-                <Button colorScheme='blue' onClick={handleLogin}>
-                  Login to save
-                </Button>
+              { loggedInWWallet 
+                  ? userAz?.length
+                    ? (
+                        <Button
+                          // type='submit'
+                          colorScheme='linkedin'
+                          onClick={onSubmitA}
+                          isDisabled={response === '' ? true : false}
+                        >
+                          Edit
+                        </Button>
+                    ) : (
+                      <Button
+                        // type='submit'
+                        colorScheme='linkedin'
+                        onClick={onSubmitA}
+                        isDisabled={response === '' ? true : false}
+                      >
+                        Save
+                      </Button>
+                    )
+                  : response === '' ? (
+                    <Button colorScheme='linkedin' onClick={login}>
+                      Login
+                    </Button>
+                  ):(
+                    <Button colorScheme='linkedin' onClick={handleLogin}>
+                      Login to save
+                    </Button>
               )}
             </Flex>
           </DrawerFooter>

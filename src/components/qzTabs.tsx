@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react'
+import React, { useState, useRef, useContext } from 'react'
 import {
   Tabs,
   TabList,
@@ -12,12 +12,17 @@ import {
   useColorModeValue,
 } from '@chakra-ui/react'
 import { QCardSmall } from './qCardSmall'
-import { 
-  generatePath
-} from "react-router-dom"
+// import { 
+//   generatePath, useSearchParams
+// } from "react-router-dom"
 import { SwipeEventData, useSwipeable } from 'react-swipeable'
 // import { InView } from 'react-intersection-observer'
-import { CollectionList } from "@polybase/client"
+import { 
+  CollectionList,
+  Query
+} from "@polybase/client"
+import { RootContext } from '../routes/Root'
+import { Qz } from '../types/types'
 
 
 export type CategoryProps = {
@@ -26,6 +31,7 @@ export type CategoryProps = {
   tag: string
   loading: boolean
   data: CollectionList<any> | null
+  query: Query<Qz>
 }
 
 type QzPanelsProps = {
@@ -64,6 +70,13 @@ const CustomTabPanel: React.ForwardRefExoticComponent<CustomTabPanelProps> = Rea
 export const QzTabs = ({...QzPanelsProps}: QzPanelsProps): React.ReactElement => {
   const [ tabIndex, setTabIndex ] = useState<number>(0)
   const [ translateValue, setTranslateValue ] = useState<number>(0)
+  const rootContext = useContext(RootContext)
+  const { 
+    // qz,
+    setQz,
+    setSearchParams
+  } = rootContext
+
   const { categories } = QzPanelsProps
   const refs = categories.reduce((acc:{[key: number]: React.RefObject<HTMLDivElement>}, category) => {
     acc[category.id] = useRef(null);
@@ -148,9 +161,6 @@ export const QzTabs = ({...QzPanelsProps}: QzPanelsProps): React.ReactElement =>
     delta: 10,
     // touchEventOptions: { passive: false }
   })
-
-  // const tabPanels = useRef()
-
   
   return (
     <Tabs
@@ -158,7 +168,7 @@ export const QzTabs = ({...QzPanelsProps}: QzPanelsProps): React.ReactElement =>
       lazyBehavior={'keepMounted'}
       index={tabIndex}
       onChange={handleTabsChange}
-      colorScheme={useColorModeValue('messenger','linkedin')}
+      colorScheme={'linkedin'}
       h={'100%'}
       display={'flex'}
       flexDir={'column'}
@@ -211,10 +221,15 @@ export const QzTabs = ({...QzPanelsProps}: QzPanelsProps): React.ReactElement =>
             ) : (
               <List>
                 {category.data?.data.map((res: any, i: number) => {
-                  const path = generatePath("/q/:qId", { qId: res.data.id })
+
+                  const params = { q: res.data.id }
+                  const onClick = () => {
+                    setSearchParams(params)
+                    setQz(category.data?.data)
+                  }
                   return (
                     <ListItem key={i}>
-                      <QCardSmall borderColor={borderColor} path={path} q={res.data} />
+                      <QCardSmall borderColor={borderColor} onClick={onClick} q={res.data} />
                     </ListItem>
                   )
                 })}

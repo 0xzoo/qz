@@ -1,14 +1,14 @@
-import { Qz } from "../types/types"
+import { Az, Qz } from "../types/types"
 import {
   Container,
   Collapse,
-  Box,
-  Link
+  Box
 } from '@chakra-ui/react'
 import { ResponseView } from "./responseView"
 import { PrivateToggle } from "./privateToggle"
 import { ImportanceSlider } from "./importanceSlider"
 import { PublicAzForQ } from "./publicAzForQ"
+import { CollectionRecordResponse } from "@polybase/client"
 
 export enum QAViews {
   RESPOND = 'Respond',
@@ -18,10 +18,12 @@ export enum QAViews {
 }
 
 type QAViewProps = {
+  qIndex: number | undefined
   handleMcRadio: (i: string) => void
-  value: string | undefined
-  liftValue: (e: React.ChangeEvent<HTMLTextAreaElement>) => void
+  value: string
+  handleValue: (e: React.ChangeEvent<HTMLTextAreaElement>) => void
   currentQ: Qz
+  userAz: CollectionRecordResponse<Az>[] | undefined
   initialRef: React.MutableRefObject<null>
   handleIsPrivate: (e: React.ChangeEvent<HTMLInputElement>) => void
   handleImportance: (i: number) => void
@@ -30,8 +32,7 @@ type QAViewProps = {
 }
 
 export const QAView = (props: QAViewProps) => {
-
-  return (
+  return props.currentQ && (
     <Container
       ml={0}
       my={8}
@@ -41,38 +42,28 @@ export const QAView = (props: QAViewProps) => {
     >
       <Collapse in={props.qAView == QAViews.RESPOND}>
         <ResponseView 
-          questionType={props.currentQ?.type}
           handleMcRadio={props.handleMcRadio}
           value={props.value}
-          liftValue={props.liftValue}
+          handleValue={props.handleValue}
           currentQ={props.currentQ}
           initialRef={props.initialRef}
+          userAz={props.userAz}
         />
         <PrivateToggle onChange={props.handleIsPrivate} />
         {props.currentQ?.importance ? (<ImportanceSlider handleImportance={props.handleImportance}/>):('')}
       </Collapse>
       <Collapse in={props.qAView == QAViews.PUBLIC}>
         <Box>
-          <Link onClick={() => props.handleQAViewChange(QAViews.RESPOND)}>
-            Back
-          </Link>
           <PublicAzForQ currentQ={props.currentQ}/>
         </Box>
       </Collapse>
       <Collapse in={props.qAView == QAViews.FORKS}>
-        <Box
-        >
-          <Link onClick={() => props.handleQAViewChange(QAViews.RESPOND)}>
-            Back
-          </Link>
+        <Box>
+
         </Box>
       </Collapse>
       <Collapse in={props.qAView == QAViews.FUPS}>
-        <Box
-        >
-          <Link onClick={() => props.handleQAViewChange(QAViews.RESPOND)}>
-            Back
-          </Link>
+        <Box>
         </Box>
       </Collapse>
     </Container>

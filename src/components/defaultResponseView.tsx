@@ -25,6 +25,9 @@ Fringilla est ullamcorper eget nulla facilisi. Volutpat est velit egestas dui id
 
 
 export const DefaultResponseView = (props: defaultResponseViewProps) => {
+  const colorModeValue = useColorModeValue('body','white')
+  const bgColor = useColorModeValue('white','gray.700')
+
   switch(props.type) {
     case 'mc':
       return (
@@ -34,7 +37,7 @@ export const DefaultResponseView = (props: defaultResponseViewProps) => {
             return (
               <Input 
                 placeholder= {res}
-                color={useColorModeValue('body','white')}
+                color={colorModeValue}
                 type='text'
                 mb={3}
                 key={i}
@@ -62,7 +65,7 @@ export const DefaultResponseView = (props: defaultResponseViewProps) => {
               isReadOnly
               minH={'100px'} 
               value={shortTextPlaceholder}
-              bg={useColorModeValue('white','gray.700')}
+              bg={bgColor}
             />
           </Stack>
         </FormControl>
@@ -76,7 +79,7 @@ export const DefaultResponseView = (props: defaultResponseViewProps) => {
               isReadOnly
               minH={'100px'} 
               value={longTextPlaceholder}
-              bg={useColorModeValue('white','gray.700')}
+              bg={bgColor}
             />
           </Stack>
         </FormControl>

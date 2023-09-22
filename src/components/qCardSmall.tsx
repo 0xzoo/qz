@@ -7,9 +7,6 @@ import {
   Text
 } from '@chakra-ui/react'
 import {
-  Link as RouterLink
-} from 'react-router-dom'
-import {
   PublicAIcon,
   PrivateAIcon,
   ForkIcon,
@@ -19,13 +16,13 @@ import { Qz } from '../types/types'
 
 type qCardProps = {
   borderColor: string
-  path: string
+  onClick: () => void
   q: Qz
 }
  
  
 export const QCardSmall = (props: qCardProps) => {
-  const { borderColor, path, q } = props
+  const { borderColor, onClick, q } = props
 
   return (
     <Flex
@@ -40,9 +37,10 @@ export const QCardSmall = (props: qCardProps) => {
       w={'100%'}
     >
       <Link
-        as={RouterLink}
-        to={path}
+        // as={RouterLink}
+        // to={path}
         _hover={{ textDecor: 'none' }}
+        onClick={onClick}
       >
         <Box
           p={0}

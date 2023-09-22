@@ -1,74 +1,63 @@
+import {
+  useMemo,
+  createContext, 
+  useState,
+  // useEffect 
+} from 'react'
 import { 
   Flex,
-  Box
+  // Box
 } from '@chakra-ui/react'
 // import { useSwipeable } from 'react-swipeable'
-import { usePolybase, useCollection } from '@polybase/react'
-import { Outlet } from "react-router-dom"
+// import { usePolybase, useCollection } from '@polybase/react'
+import { Outlet, SetURLSearchParams, useSearchParams } from "react-router-dom"
 import { NavBar } from "../components/navbar"
-import { CreateQModal } from "../components/createQ"
-import { QzTabs } from '../components/qzTabs'
+// import { CreateQModal } from "../components/createQ"
+// import { QzTabs } from '../components/qzTabs'
+import { Qz } from './Qz'
+import { Qz as qType } from '../types/types'
+import { CollectionRecordResponse } from '@polybase/client'
+// import { usePolybase } from '@polybase/react'
 
-// !fix use suspense
-const Home = () => {
-  const polybase = usePolybase()
 
-  // Query for Qs
-  const query = polybase.collection('Qz').sort('timestamp', 'desc')
-  const { data, loading } = useCollection(query)
 
-  const popQuery = polybase.collection('Qz').sort('pubAz', 'desc')
-  const { data: popData, loading: popLoading } = useCollection(popQuery)
-
-  // !fix change to load data on view load
-  let QzCategories = [
-    {
-      id: 0,
-      name: 'New',
-      tag: 'New',
-      loading: loading,
-      data: data
-    },
-    {
-      id: 1,
-      name: 'Popular',
-      tag: 'Pop',
-      loading: popLoading,
-      data: popData
-    }
-  ]
-
-  return (
-    <Flex 
-      direction={'column'}
-      h={'100%'}
-      w={'100vw'}
-      justifyContent={'space-between'}
-      p={0}
-      overflow={'hidden'}
-
-    >
-      {!loading && <QzTabs categories={QzCategories} />}
-      
-      <Box 
-        pos={'absolute'}
-        bottom={0}
-        right={0}
-        p={4}
-      >
-        <CreateQModal />
-      </Box>
-    </Flex>
-  )
+export interface RootContextValue {
+  qz: CollectionRecordResponse<qType, qType>[] | undefined
+  setQz: React.Dispatch<React.SetStateAction<CollectionRecordResponse<qType, qType>[] | undefined>>
+  searchParams: URLSearchParams | undefined
+  setSearchParams: SetURLSearchParams
 }
 
+export const RootContext = createContext<RootContextValue>({
+  qz: undefined,
+  setQz: () => {},
+  searchParams: undefined, // qId -> Qz
+  setSearchParams: () => {}
+})
+
 export default function Root() {
+  console.log('wholerootreload')
+
+  const [ qz, setQz ] = useState<CollectionRecordResponse<qType, qType>[]>()
+  const [ searchParams, setSearchParams ] = useSearchParams()
+  
+  const hasQ = searchParams.get('q')
+  console.log(hasQ)
+
+  const value = useMemo(() => ({
+    qz,
+    setQz,
+    searchParams,
+    setSearchParams
+  }), [qz, searchParams])
 
   return (
-    <Flex direction={'column'} h='100vh'>
-      <NavBar />
-      <Home />
-      <Outlet />
-    </Flex>
+    <RootContext.Provider value={value}>
+      <Flex direction={'column'} h='100vh'>
+        <NavBar />
+        <Outlet />
+        {hasQ && <Qz />}
+      </Flex>
+    </RootContext.Provider>
   )
 }

@@ -18,27 +18,31 @@ import {
   FollowUpIcon
 } from '../assets/icons'
 import { QAView, QAViews } from './qAView'
-import { Qz } from '../types/types'
+import { Az, Qz } from '../types/types'
 import React, { useCallback, useState } from 'react'
+import { CollectionRecordResponse } from '@polybase/client'
 
 
 type QAProps = {
+  qIndex: number | undefined
   handleMcRadio: (i: string) => void
   handleIsPrivate: (e: React.ChangeEvent<HTMLInputElement>) => void
   handleImportance: (i: number) => void
-  handleValue: (s: string) => void
+  value: string
+  handleValue: (e: React.ChangeEvent<HTMLTextAreaElement>) => void
   initialRef: React.MutableRefObject<null>
-  currentQ: Qz
+  currentQ: Qz,
+  userAz: CollectionRecordResponse<Az>[] | undefined
 }
 
 // ------------------------------------------
 
 export const QA = (props: QAProps) => {
-  const [ value, setValue ] = useState<string>()
+  // const [ value, setValue ] = useState<string>()
   const [ qAView, setQAView ] = useState<QAViews>(QAViews.RESPOND)
 
   const {
-    handleValue,
+    // handleValue,
     currentQ
   } = props
 
@@ -46,15 +50,8 @@ export const QA = (props: QAProps) => {
     setQAView(view)
   }
 
-  const liftValue = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setValue(e.target.value)
-    handleValue(e.target.value)
-  },[value])
-
   const qAViewProps = {
     handleQAViewChange,
-    liftValue,
-    value,
     qAView,
     ...props
   }
@@ -101,33 +98,40 @@ export const QA = (props: QAProps) => {
             flexDir={'row'}
             justifyContent={'space-between'}
           >
-              <HStack
-                cursor={'pointer'}
-                onClick={() => handleQAViewChange(QAViews.PUBLIC)}
-              >
-                <Icon as={PublicAIcon} />
-                <Text noOfLines={1}>{currentQ?.pubAz}</Text>
-              </HStack>
-              <HStack ml={[6,9]}>
-                <Icon as={PrivateAIcon} />
-                <Text noOfLines={1}>{currentQ?.prvAz}</Text>
-              </HStack>
-              <HStack
-                ml={[6,9]}
-                cursor={'pointer'}
-                onClick={() => handleQAViewChange(QAViews.FORKS)}
-              >
-                <Icon as={ForkIcon} />
-                <Text noOfLines={1}>{currentQ?.forks.length}</Text>
-              </HStack>
-              <HStack
-                ml={[6,9]}
-                cursor={'pointer'}
-                onClick={() => handleQAViewChange(QAViews.FUPS)}
-              >
-                <Icon as={FollowUpIcon} />
-                <Text noOfLines={1}>{currentQ?.followUps.length}</Text>
-              </HStack>
+            <Box
+              cursor={'pointer'}
+              onClick={() => handleQAViewChange(QAViews.RESPOND)}
+            >
+              +
+            </Box>
+            <HStack
+              ml={[6,9]}
+              cursor={'pointer'}
+              onClick={() => handleQAViewChange(QAViews.PUBLIC)}
+            >
+              <Icon as={PublicAIcon} />
+              <Text noOfLines={1}>{currentQ?.pubAz}</Text>
+            </HStack>
+            <HStack ml={[6,9]}>
+              <Icon as={PrivateAIcon} />
+              <Text noOfLines={1}>{currentQ?.prvAz}</Text>
+            </HStack>
+            <HStack
+              ml={[6,9]}
+              cursor={'pointer'}
+              onClick={() => handleQAViewChange(QAViews.FORKS)}
+            >
+              <Icon as={ForkIcon} />
+              <Text noOfLines={1}>{currentQ?.forks.length}</Text>
+            </HStack>
+            <HStack
+              ml={[6,9]}
+              cursor={'pointer'}
+              onClick={() => handleQAViewChange(QAViews.FUPS)}
+            >
+              <Icon as={FollowUpIcon} />
+              <Text noOfLines={1}>{currentQ?.followUps.length}</Text>
+            </HStack>
           </Flex>
         </Flex>
       </Flex>

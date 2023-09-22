@@ -7,13 +7,11 @@ import {
   Menu,
   MenuButton,
   MenuList,
-  MenuGroup,
   MenuItem,
   MenuDivider,
   Button,
   ButtonGroup,
   IconButton,
-  // Avatar,
   Spacer,
   useColorMode,
   useColorModeValue
@@ -23,9 +21,10 @@ import {
   SunIcon,
   HamburgerIcon
 } from '@chakra-ui/icons'
-import { Link as RouterLink } from 'react-router-dom'
+import { Link as RouterLink, useNavigate } from 'react-router-dom'
 // import { useIsAuthenticated } from "@polybase/react"
 import { useWallet } from "../auth/useWallet"
+import { useAuth } from "@polybase/react"
 
 type logoProps = {
   w: string
@@ -70,13 +69,19 @@ const ColorModeToggle = () => {
 }
 
 export const NavBar = () => {
-  // const [ isLoggedIn ] = useIsAuthenticated()
+  const { state } = useAuth()
   const [ isOpen, setIsOpen ] = React.useState(false)
   const { login, logout, loggedInWWallet } = useWallet()
+  const navigate = useNavigate()
 
   const handleLogin = () => {
     setIsOpen(!isOpen)
     login()
+  }
+
+  const handleLogout = () => {
+    logout()
+    navigate('/')
   }
 
   return (
@@ -98,12 +103,20 @@ export const NavBar = () => {
               bg={'transparent'}
             />
             <MenuList>
-              <MenuGroup title="Profile">
-                <MenuItem>My Qz</MenuItem>
-                <MenuItem>My Az</MenuItem>
-              </MenuGroup>
+              <Link as={RouterLink} to={state?.userId as string}>
+                <MenuItem>
+                  Profile
+                </MenuItem>
+              </Link>
+              <MenuItem>My Qz</MenuItem>
+              <MenuItem>My Az</MenuItem>
               <MenuDivider />
-              <Button onClick={() => logout()}>Logout</Button>
+              <MenuItem
+
+                onClick={() => handleLogout()}
+              >
+                Logout
+              </MenuItem>
             </MenuList>
           </Menu>
         ):(
