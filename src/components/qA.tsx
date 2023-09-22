@@ -19,7 +19,7 @@ import {
 } from '../assets/icons'
 import { QAView, QAViews } from './qAView'
 import { Az, Qz } from '../types/types'
-import React, { useCallback, useState } from 'react'
+import React, { useState } from 'react'
 import { CollectionRecordResponse } from '@polybase/client'
 
 

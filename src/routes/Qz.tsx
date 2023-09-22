@@ -90,7 +90,11 @@ export const Qz = () => {
 
   const rootContext = useContext(RootContext)
   const qId = rootContext.searchParams?.get('q')
-  const { setSearchParams, qz, setQz } = rootContext
+  const {
+    setSearchParams,
+    qz,
+    // setQz
+  } = rootContext
   const [ currentQ, setCurrentQ ] = useState<QType>()
   const [ currentQueue, setCurrentQueue ] = useState<CollectionRecordResponse<QType, QType>[] | undefined>([])
   const [ currentQueueIndex, setCurrentQueueIndex ] = useState<number>(0)
@@ -198,7 +202,7 @@ export const Qz = () => {
 
   const onSkipQ = () => {
     // change index in currentQueue
-    setCurrentQueueIndex(currentQueueIndex + 1)
+    nextQz()
     // navigate to next in queue
   }
 
