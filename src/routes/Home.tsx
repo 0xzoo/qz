@@ -43,13 +43,14 @@ export const Home = () => {
   ]
 
   return (
-    <Flex 
-      direction={'column'}
-      h={'100vh'}
+    <Box 
+      // direction={'column'}
+      // h={'100vh'}
+      display={['flex','block']}
       w={'100vw'}
       justifyContent={'space-between'}
       p={0}
-      overflow={'hidden'}
+      overflowY={['hidden','scroll']}
 
     >
       {!loading && <QzTabs categories={QzCategories} />}
@@ -63,6 +64,6 @@ export const Home = () => {
         <CreateQModal />
       </Box>
       <Outlet />
-    </Flex>
+    </Box>
   )
 }

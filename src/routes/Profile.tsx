@@ -48,6 +48,7 @@ export const Profile = () => {
   // Should depend on if user is following
   const azQuery = polybase.collection('PubAz').where("owner","==", owner).sort('timestamp', 'desc')
   const { data: azData } = useCollection<Az>(azQuery)
+  console.log(azData)
 
   const borderColor = useColorModeValue('gray.300','gray.600')
 
@@ -55,9 +56,11 @@ export const Profile = () => {
   return ( userData && (
     <Flex
       flexDir={['column','row']}
-      h={'100%'}
-    >
-      <Flex flexDir={'column'}>
+      overflowY={'hidden'}
+      >
+      <Flex
+        flexDir={'column'}
+      >
         <Flex
           flexDir={'row'}
           alignItems={'center'}
@@ -71,12 +74,11 @@ export const Profile = () => {
         isLazy
         lazyBehavior={'keepMounted'}
         colorScheme={'linkedin'}
-        h={'100%'}
         display={'flex'}
         flexDir={'column'}
         id="SwipeController"
-        overflowX={'hidden'}
-        overflowY={'clip'}
+        // overflowX={'hidden'}
+        overflowY={'hidden'}
         p={0}
         w={['100vw', 400, 500]}
         // {...swipeHandlers}
@@ -85,7 +87,9 @@ export const Profile = () => {
           <Tab>Qz</Tab>
           <Tab>Az</Tab>
         </TabList>
-        <TabPanels>
+        <TabPanels
+          overflowY={'scroll'}
+        >
           <TabPanel>
             <List>
               { qzData?.data.map((res: any, i: number) => {

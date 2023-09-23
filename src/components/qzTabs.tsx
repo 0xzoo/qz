@@ -169,7 +169,7 @@ export const QzTabs = ({...QzPanelsProps}: QzPanelsProps): React.ReactElement =>
       index={tabIndex}
       onChange={handleTabsChange}
       colorScheme={'linkedin'}
-      h={'100%'}
+      // h={'100%'}
       display={'flex'}
       flexDir={'column'}
       id="SwipeController"

@@ -43,9 +43,8 @@ export const QCardSmall = (props: qCardProps) => {
         onClick={onClick}
       >
         <Box
-          p={0}
-          pt={6}
-          pb={6}
+          p={2}
+          py={9}
         >
           <Text fontSize='md'>
             {q.stem}
@@ -58,19 +57,19 @@ export const QCardSmall = (props: qCardProps) => {
         right={4}
         bottom={0}
       >
-        <HStack spacing={2}>
+        <HStack spacing={1}>
           <Icon as={PublicAIcon} />
           <Text>{q.pubAz}</Text>
         </HStack>
-        <HStack>
+        <HStack spacing={1}>
           <Icon as={PrivateAIcon} />
           <Text>{q.prvAz}</Text>
         </HStack>
-        <HStack>
+        <HStack spacing={1}>
           <Icon as={ForkIcon} />
           <Text>{q.forks.length}</Text>
         </HStack>
-        <HStack>
+        <HStack spacing={1}>
           <Icon as={FollowUpIcon} />
           <Text>{q.followUps.length}</Text>
         </HStack>
