@@ -1,5 +1,4 @@
 import { 
-  Flex,
   Box
 } from '@chakra-ui/react'
 import { usePolybase, useCollection } from '@polybase/react'
