@@ -16,6 +16,7 @@
     "@chakra-ui/theme-tools": "^2.1.0",
     "@emotion/react": "^11.11.1",
     "@emotion/styled": "^11.11.0",
+    "@huggingface/inference": "2",
     "@polybase/auth": "^0.6.5",
     "@polybase/client": "^0.6.5",
     "@polybase/eth": "^0.6.5",

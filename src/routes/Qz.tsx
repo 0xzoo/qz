@@ -46,8 +46,8 @@ import {
   getPriorAz,
   createNewA,
   markAEdited,
-  incrPubAz,
-  getNewQz
+  getNewQz,
+  incrAz
 } from "../pb/functions"
 
 // controller for QAz
@@ -308,7 +308,7 @@ export const Qz = () => {
               markAEdited(newestA.id, audience).catch((e) => {setLoading(false); throw e})
             } else {
               // !fix use incrAz when you figure out private posts
-              incrPubAz(qId).catch((e) => {setLoading(false); throw e})
+              incrAz(qId, audience).catch((e) => {setLoading(false); throw e})
             }
           })
         })

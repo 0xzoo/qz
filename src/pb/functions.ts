@@ -6,7 +6,6 @@ import {
 import {
   User,
   Qz,
-  PublicAz,
   Az
 } from '../types/types'
 
