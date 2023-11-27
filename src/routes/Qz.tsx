@@ -1,17 +1,13 @@
-import React, {
+import {
   useEffect,
   useState,
   useCallback,
-  useContext
+  useContext,
+  useRef
 } from "react"
+// import { polybase } from "../App"
 import {
-  Form,
-  // useParams,
-  // useSearchParams
-} from 'react-router-dom'
-import { polybase } from "../App"
-import {
-  usePolybase,
+  // usePolybase,
   useAuth,
   // useDocument,
   // useCollection
@@ -28,7 +24,6 @@ import {
   // DrawerHeader,
   DrawerOverlay,
   DrawerContent,
-  // DrawerCloseButton,
   useDisclosure,
   useColorModeValue,
 } from '@chakra-ui/react'
@@ -36,92 +31,69 @@ import {
   ChevronLeftIcon
 } from '@chakra-ui/icons'
 import { 
-  Az as AType, 
-  Qz as QType
+  Az as AType,
+  Qz as QType,
+  Audiences
+  // User
 } from "../types/types"
 import { useWallet } from "../auth/useWallet"
 import { RootContext } from "./Root"
 import { QA } from '../components/qA'
-import { CollectionList, CollectionRecordResponse } from "@polybase/client"
-// import { CollectionList } from "@polybase/client"
+import { CollectionRecordResponse } from "@polybase/client"
+import {
+  getUser,
+  getQ,
+  getPriorAz,
+  createNewA,
+  markAEdited,
+  incrPubAz,
+  getNewQz
+} from "../pb/functions"
 
-
-async function getQ (qId: string) {
-  const record: CollectionRecordResponse<QType, QType> = await polybase.collection("Qz").record(qId).get()
-  const { data: currentQData } = record
-
-  return currentQData
-}
-
-async function getQueue (qz?: CollectionRecordResponse<QType, QType>[]) {
-  let queueData
-  if (qz) {
-    queueData = qz
-  } else {
-    const records: CollectionList<QType> = await polybase.collection("Qz").sort('timestamp', 'desc').get()
-    const { data: currentQueueData } = records
-    queueData = currentQueueData
-  }
-
-  return queueData
-}
-
-async function getPriorAz (qId: string, user?: string) {
-  if (user) {
-    const records: CollectionList<AType> = await polybase.collection("PubAz")
-      .where('qId', '==', polybase.collection("Qz").record(qId))
-      .where('owner', '==', polybase.collection("User").record(user))
-      .sort('timestamp', 'desc')
-      .get()
-    const { data: priorAzData } = records
-
-    return priorAzData
-  } else {
-    return []
-  }
-}
-
-
+// controller for QAz
+// manage queue
+// createA
 export const Qz = () => {
-  const polybase = usePolybase()
   const { state } = useAuth()
   const { isOpen, onOpen, onClose } = useDisclosure()
-  const { publicKey, login, loggedInWWallet } = useWallet()
+  const { 
+    // publicKey,
+    login,
+    loggedInWWallet
+  } = useWallet()
 
+  // Root context vars
   const rootContext = useContext(RootContext)
-  const qId = rootContext.searchParams?.get('q')
+  // const [ searchParams, setSearchParams ] = useSearchParams()
   const {
+    qz, // set qsets here, read to currentqueue
+    setQz,
+    queueIndex,
+    setQueueIndex,
+    searchParams,
     setSearchParams,
-    qz,
-    // setQz
+    setLoading
   } = rootContext
-  const [ currentQ, setCurrentQ ] = useState<QType>()
-  const [ currentQueue, setCurrentQueue ] = useState<CollectionRecordResponse<QType, QType>[] | undefined>([])
-  const [ currentQueueIndex, setCurrentQueueIndex ] = useState<number>(0)
-  const [ userAz, setUserAz ] = useState<CollectionRecordResponse<AType, AType>[]>()
+  const qId = searchParams?.get('q') as string
 
+  // Q + A vars
+  const firstQ = qz.length ? qz[0] : undefined
+  console.log('firstQ', firstQ?.data.id)
+  const [ currentQ, setCurrentQ ] = useState<CollectionRecordResponse<QType> | undefined >(firstQ)
+  const [ currentQueue, setCurrentQueue ] = useState<CollectionRecordResponse<QType, QType>[]>([])
+  const [ currentQueueIndex, setCurrentQueueIndex ] = useState<number>(0)
+  const [ userAz, setUserAz ] = useState<CollectionRecordResponse<AType, AType>[]>([])
+
+  // createA vars
   const [ qIndex, setQIndex ] = useState<number>()
-  const [ value, setValue ] = useState<string>("")
-  const [ isPrivateA, setIsPrivateA ] = useState<boolean>(false)
+  const [ value, setValue ] = useState<string>('')
+  const [ audience, setAudience ] = useState<string>(Audiences.PUBLIC)
   const [ importance, setImportance ] = useState<number>()
   // const [ asset, setAsset ] = useState<string>()
-  const [ response, setResponse ] = useState<string>("")
+  const [ response, setResponse ] = useState<string>('')
 
-
-  // const { data: qData, loading: qLoading } = useDocument(polybase.collection('Qz').record(qId as string))
-  // const currentQData = await polybase.collection("Qz")
-  // .record(qId as string)
-  // .get()
-
-
-
-  
-  // create currentQSet starting with current qId length 5
-
-  // Query for Qs
-  // const qzCollectionReference = polybase.collection("Qz")
-  // const azCollectionReference = polybase.collection("Az")
-  // const query = polybase.collection('Qz').sort('timestamp', 'desc')
+  const [ qzWidth, setQzWidth ] = useState<number | undefined>()
+  console.log('QzRe')
 
   // check against qz already answered by user
 
@@ -136,101 +108,133 @@ export const Qz = () => {
 
   useEffect(() => {
     onOpen()
+    console.log('opening')
+    // if q is chosen from a qset, set it as first in array and use qset as qzSet
+    if (firstQ) {
+      // setQz([firstQ, ...qz.splice(queueIndex, 1)])
+      setCurrentQueue([firstQ])
+    // else, get q using qId and populate array with new qz for now, vector based later
+    } else {
+      getQ(qId)
+        .then(q => {
+          setCurrentQ(q)
 
-    getQ(qId as string)
-      .then(q => {
-        setCurrentQ(q)
+          getNewQz()
+            .then(res => {
+              // should check if q is in array, and remove(?)
+              setQz([q, ...res])
+              setCurrentQueue([q])
+            })
+        })      
+    } 
 
-        getPriorAz(qId as string, state?.userId as string)
-          .then(az => {
-            if (az.length) {
-              setUserAz(az)
-              const newestA = az[0].data
-              switch (q.type) {
-                case 'mc':
-                  const newestAQIndex = newestA.qIndex
-                  setQIndex(newestAQIndex)
-                  break
-                case 'shortText':
-                  const newestAShortValue = newestA.value as string
-                  setValue(newestAShortValue)
-                  break
-                case 'longText':
-                  const newestALongValue = newestA.value as string
-                  setValue(newestALongValue)
-                  break
-              }
-            }
-          })
+    getPriorAz(qId, state?.userId as string)
+      .then(az => {
+        if (az.length) {
+          setUserAz(az)
+          const newestA = az[0].data
+          switch (currentQ?.data.type) {
+            case 'mc':
+              const newestAQIndex = newestA.qIndex
+              setQIndex(newestAQIndex)
+              break
+            case 'text':
+              const newestAValue = newestA.value as string
+              setValue(newestAValue)
+              break
+            case 'scale':
+              const newestAScaleValue = newestA.value as string
+              setValue(newestAScaleValue)
+              break
+          }
+        }
       })
-    getQueue(qz)
-      .then(res => {
-        setCurrentQueue(res)
-      })
-    
   },[])
 
-  // useEffect(() => {
-  //   setCurrentQ(currentQData)
-  // },[currentQData])
-
-  // useEffect(() => {
-  //   if (!qz) {
-
-  //     // setQz(data.data)
-  //   }
-  //   setCurrentQueue(qz)
-  // },[qz])
-
-
+  // should prob do this in qA
+  useEffect(() => {
+    console.log('currentQ', currentQ?.data.id)
+    getPriorAz(currentQ?.data.id as string, state?.userId as string)
+      .then(az => {
+        if (az.length) {
+          setUserAz(az)
+          const newestA = az[0].data
+          switch (currentQ?.data.type) {
+            case 'mc':
+              const newestAQIndex = newestA.qIndex
+              setValue('')
+              setQIndex(newestAQIndex)
+              break
+            case 'text':
+              const newestAValue = newestA.value as string
+              setValue(newestAValue)
+              setQIndex(undefined)
+              break
+            case 'scale':
+              const newestAScaleValue = newestA.value as string
+              console.log('newestAScaleValue', newestAScaleValue)
+              setValue(newestAScaleValue)
+              setQIndex(undefined)
+              break
+          }
+        } else {
+          setValue('') // !fix change to undefined
+          setQIndex(undefined)
+        }
+      })
+  },[currentQ])
 
   const onCloseQz = () => {
+    setQueueIndex(currentQueueIndex)
     onClose()
-    setSearchParams({})
+    setTimeout(() => {setSearchParams({})}, 200)
   }
 
-  const nextQz = () => {
+  const getNextQ = () => {
     // get next qId and set to params
-    const nextQId = currentQueue && currentQueue[currentQueueIndex + 1].id
-    console.log(nextQId)
-    const params = nextQId && { q: nextQId }
+    let nextQ = qz[currentQueueIndex + 1]
+    // if (nextQ.data.id == firstQ?.data.id) {
+    //   console.log('skipping q', nextQ.data.id)
+    //   const newQz = qz
+    //   newQz.splice(currentQueueIndex, 1)
+    //   setQz(newQz)
+    //   nextQ = newQz[currentQueueIndex + 2]
+    // }
+    console.log('nextQId', nextQ.data.id)
+    const params = { q: nextQ.data.id }
+    const newQueue = [...currentQueue, qz[currentQueueIndex + 1]]
     setCurrentQueueIndex(currentQueueIndex + 1)
+    setCurrentQueue(newQueue)
+    setQueueIndex(queueIndex + 1)
     setSearchParams(params)
-
-    // add new qA to qzArray
+    setCurrentQ(nextQ)
+    console.log('newQueue', newQueue)
   }
 
   const onSkipQ = () => {
     // change index in currentQueue
-    nextQz()
+    getNextQ()
     // navigate to next in queue
   }
 
+  // !fix
   const handleLogin = () => {
     login()
   }
 
   const onSubmitA = async () => {
-    if (!currentQ) return
+    if (!currentQ?.id) return // !fix
 
-    // if priorA, markAEdited priorAz[0], create new PubA, dont incrPubAz
-    
-    const user = publicKey && await polybase.collection('User').record(state?.userId as string).get().catch((e) => console.log('error getting user from db', e))
-    const q = await polybase.collection('Qz').record(currentQ.id as string).get().catch((e) => {throw e})
+    const anon = false // !fix add anon
+    const userId = state?.userId as string
+    // let user
+    // getUser(userId)
+    //   .then(res => user = res)
     const valueOr = value === "" ? undefined : value
     const timestamp = Date.now()
 
-    const newA: any = [
-      nanoid(),
-      user,
-      q,
-      timestamp,
-      qIndex,
-      valueOr,
-      importance
-    ]
-
-    if (isPrivateA) {
+    // if (audience == 'Only Me') { // !fix make enum
+      // console.log(publicKey)
     //   // encrypt asymm
     //   // const publicKey = wallet.publicKey as string
     //   console.log(publicKey)
@@ -246,48 +250,97 @@ export const Qz = () => {
     //   );
 
     //   console.log('encryptedValueAsHexStr', encryptedValueAsHexStr)
-    } 
+      // const allowList = [user]
+      // const newPrivA: any = [
+      //   nanoid(),
+      //   user,
+      //   q,
+      //   timestamp,
+      //   allowList,
+      //   qIndex,
+      //   valueOr,
+      //   importance
+      // ]
+      // await polybase.collection('PrivAz').create(newPrivA).catch((e) => {throw e})
+      // await polybase.collection('Qz').record(currentQ.id).call("incrPrivAz", [currentQ.id]).catch((e) => {throw e})
+    // } else {
+      // const newPubA: any = [
+      //   nanoid(),
+      //   currentQ,
+      //   timestamp,
+      //   anon,
+      //   user,
+      //   qIndex,
+      //   valueOr,
+      //   importance
+      // ]
+      // console.log(newPubA)
 
-    console.log('newA', newA)
-    await polybase.collection('PubAz').create(newA).catch((e) => {throw e})
-    await polybase.collection('Qz').record(currentQ.id).call("incrPubAz", [currentQ.id]).catch((e) => {throw e})
+      // await polybase.collection('PubAz').create(newPubA).catch((e) => {throw e})
+
+      // for if/when we add assets
+      const asset = undefined
+      const formattedQ = {
+        collectionId : currentQ.id,
+        id: currentQ.data.id
+      }
+
+      getUser(userId)
+        .then((user) => {
+          let newPubA: any = [
+            nanoid(),
+            formattedQ,
+            timestamp,
+            anon,
+            user,
+            qIndex,
+            valueOr,
+            importance,
+            asset
+          ]
+          console.log(newPubA)
+          createNewA(newPubA, audience) // !fix add allowlist
+          .then(() => {
+            // edits dont increment answer numbers
+            if (userAz?.length) {
+              const newestA = userAz[0].data
+              // !fix what if user is switching audience?
+              markAEdited(newestA.id, audience).catch((e) => {setLoading(false); throw e})
+            } else {
+              // !fix use incrAz when you figure out private posts
+              incrPubAz(qId).catch((e) => {setLoading(false); throw e})
+            }
+          })
+        })
+    // }
+    // update az
+    setLoading(false) // !fix switch to translate animation
+    // nextQ()
   }
 
   const handleMcRadio = useCallback((i: string) => {
-    if (currentQ && currentQ.az) {
-      const qIndex = currentQ.az.indexOf(i)
+    if (currentQ && currentQ.data.az) {
+      const qIndex = currentQ.data.az.indexOf(i)
       setQIndex(qIndex)
       const qIndexString = String(qIndex)
       setResponse(qIndexString)
     }
   },[currentQ])
   
-  const handleIsPrivate = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    setIsPrivateA(e.target.checked)
-  },[])
-  
-  const handleImportance = useCallback((i: number) => {
-    setImportance(i)
-  },[])
-  
-  const handleValue = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setValue(e.target.value)
-    setResponse(e.target.value)
-  },[])
-
-  const initialRef = React.useRef(null)  
-
-  const QAProps = {
-    qIndex,
-    handleMcRadio,
-    handleIsPrivate,
-    handleImportance,
-    value,
-    handleValue,
-    initialRef,
-    currentQ: currentQ as QType,
-    userAz
+  const handleAudience = (s: string) => {
+    setAudience(s)
   }
+  
+  const handleImportance = (i: number) => {
+    setImportance(i)
+  }
+  
+  const handleValue = (s: string) => {
+    setValue(s)
+    setResponse(s)
+  }
+
+  const initialRef = useRef(null)
 
   return (
     <Drawer
@@ -300,22 +353,57 @@ export const Qz = () => {
       initialFocusRef={initialRef}
     >
       <DrawerOverlay />
-      <Form>
+      {/* <Form> */}
         <DrawerContent pt={20} bgColor={useColorModeValue('#ff0', 'gray.700')}>
           <Button
             aria-label='Back to Qz'
             onClick={onCloseQz}
             bg={'transparent'}
             w={'fit-content'}
-            variant={'link'} ml={4}
+            variant={'link'}
             fontWeight={'normal'}
             color={useColorModeValue('gray.700', 'gray.200')}
+            ml={4}
+            mt={2}
+            pr={2}
           >
             <ChevronLeftIcon boxSize={10} /> Back to Qz
           </Button>
           <DrawerBody>
-            {/* { currentQueue?.map(())} */}
-            <QA {...QAProps} />
+            <Flex
+              w={'100%'}
+              h={'100%'}
+              flexDir={'row'}
+              overflowX={'scroll'}
+              position={'relative'}
+            >
+              <Flex
+                w={'100%'}
+                ref={(node) => setQzWidth(node?.offsetWidth)}
+                // transform={'translateX(-100px)'}
+                transform={'translateX(-' + (qzWidth ? currentQueueIndex * qzWidth : 0).toString() + 'px)'}
+                transition={'all 333ms'}
+              >
+                { currentQueue?.map((q) => {
+                  const QAProps = {
+                    qIndex,
+                    handleMcRadio,
+                    audience,
+                    handleAudience,
+                    handleImportance,
+                    value,
+                    handleValue,
+                    initialRef,
+                    currentQ: q.data,
+                    userAz
+                  }
+
+                  return (
+                    <QA {...QAProps} />
+                  )
+                })}
+              </Flex>
+            </Flex>
           </DrawerBody>
           <DrawerFooter>
             <Flex direction={'row'} justifyContent={'space-between'} w={'100%'}>
@@ -327,7 +415,6 @@ export const Qz = () => {
                   ? userAz?.length
                     ? (
                         <Button
-                          // type='submit'
                           colorScheme='linkedin'
                           onClick={onSubmitA}
                           isDisabled={response === '' ? true : false}
@@ -336,7 +423,6 @@ export const Qz = () => {
                         </Button>
                     ) : (
                       <Button
-                        // type='submit'
                         colorScheme='linkedin'
                         onClick={onSubmitA}
                         isDisabled={response === '' ? true : false}
@@ -358,7 +444,7 @@ export const Qz = () => {
           {/* <DrawerCloseButton top={20} size={'lg'}/> */}
           {/* <ArrowNavs /> */}
         </DrawerContent>
-      </Form>
+      {/* </Form> */}
     </Drawer>
   )
 }

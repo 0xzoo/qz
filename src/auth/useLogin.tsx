@@ -6,11 +6,15 @@ import {
   aescbc,
   EncryptedDataAesCbc256
 } from '@polybase/util'
-import { Polybase } from '@polybase/client'
-import { ethPersonalSign } from '@polybase/eth'
+import { 
+  Polybase,
+  // PublicKey
+} from '@polybase/client'
+// import { ethPersonalSign } from '@polybase/eth'
 import { Auth } from '@polybase/react/dist/auth/types'
 import { User } from '../types/types'
 import { AuthState } from '@polybase/auth'
+import { polybase } from '../App'
 
 enum AuthType {
   MM = 'metamask',
@@ -24,16 +28,18 @@ export const useLogin = async (auth: Auth, polybase: Polybase) => {
   if (authState == null) throw 'err' // !fix give error
 
   const wallet = await getWallet(authState, polybase).catch((e) => {throw e})
-  if (!wallet.publicKey) {
-    auth.signOut()
-    return
-  }
+  // if (!wallet.publicKey) {
+  //   auth.signOut()
+  //   return
+  // }
 
   // Update the signer
-  polybase.signer(async (data: string) => {
-    return authState.type == AuthType.EMAIL ?
-      { h: 'eth-personal-sign', sig: ethPersonalSign(wallet.privateKey, data) }
-    : null
+  polybase.signer(async () => {
+    // return {
+    //   h: 'eth-personal-sign',
+    //   sig: await auth.ethPersonalSign('Confirm')
+    // }
+    return null
   })
 
   return wallet.publicKey
@@ -120,11 +126,11 @@ const getWallet = async (authState: AuthState, polybase: Polybase) => {
 //   })
 // }
 
-// export const reinforceSigning = (pk) => {
-//   polybase.signer(async (data: string) => {
-//     return { h: 'eth-personal-sign', sig: ethPersonalSign(pk, data) }
-//   })
-// }
+export const forceSigning = (pk: string, data: string) => {
+  polybase.signer(async () => {
+    return { h: 'eth-personal-sign', sig: eth.ethPersonalSign(pk, data) }
+  })
+}
 
 const getUser = async (account: string, polybase: Polybase) => {
   const col = polybase.collection<User>('User')

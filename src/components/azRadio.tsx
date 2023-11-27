@@ -41,7 +41,7 @@ export const AzRadio = ({data, priorA, onChange}: AzRadioProps) => {
           isDisabled={item == priorAValue}
         >
           {item}
-          { item == priorAValue && <CheckCircleIcon ml={2}/> }
+          {item == priorAValue && <CheckCircleIcon ml={2}/>}
         </CustomRadio>
       ))}
     </Stack>

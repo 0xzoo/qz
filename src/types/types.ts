@@ -1,3 +1,5 @@
+import { CollectionRecordResponse } from "@polybase/client"
+
 export interface PublicKey {
   alg: string
   crv: string
@@ -28,7 +30,6 @@ export interface Owner {
 
 export interface Qz {
   id: string;
-  owner: User;
   stem: string;
   type: string;
   timestamp: number;
@@ -36,6 +37,8 @@ export interface Qz {
   prvAz: number;
   forks: string[];
   followUps: string[];
+  anon: boolean;
+  owner?: User;
   parent?: string;
   az?: string[];
   importance?: number;
@@ -48,23 +51,61 @@ export interface Qz {
 
 export enum qzType {
   mc ='mc',
-  short ='shortText',
-  long = 'longText',
+  text = 'text',
   rank = 'ranking'
 }
 
 export interface Az {
   id: string;
-  owner: User;
   qId: Qz;
+  timestamp: number;
+  edited?: boolean;
+  anon?: boolean;
+  owner?: User;
   qIndex?: number;
   value?: string;
+  importance?: number;
+  asset?: string;
+  allowlist?: string[];
+}
+
+export interface PublicAz {
+  id: string;
+  qId: Qz;
   timestamp: number;
-  isPrivate: boolean;
-  edited: boolean;
+  edited?: boolean;
+  anon: boolean;
+  owner?: User;
+  qIndex?: number;
+  value?: string;
   importance?: number;
   asset?: string;
 }
+
+export interface GatedAz {
+  id: string;
+  qId: Qz;
+  timestamp: number;
+  edited?: boolean;
+  owner: User;
+  qIndex?: number;
+  value?: string;
+  importance?: number;
+  asset?: string;
+  allowlist?: string[];
+}
+
+export type NewAToSubmit = [
+  id: string,
+  currentQ: CollectionRecordResponse<Qz, Qz>,
+  timestamp: number,
+  anon: boolean,
+  user?: CollectionRecordResponse<User, User>,
+  qIndex?: number,
+  valueOr?: string,
+  importance?: number,
+  allowlist?: User[]
+]
 
 // export type QType = [
 //   id: string,
@@ -111,4 +152,56 @@ export interface loaderData {
   reference: any;
   request: any;
   toJSON: any;
+}
+
+export type QAProps = {
+  qIndex: number | undefined
+  handleMcRadio: (i: string) => void
+  audience: string
+  handleAudience: (s: string) => void
+  handleImportance: (i: number) => void
+  value: string
+  handleValue: (s: string) => void
+  initialRef: React.MutableRefObject<null>
+  currentQ:  Qz,
+  userAz: CollectionRecordResponse<Az>[] | undefined
+}
+
+export enum QAViews {
+  RESPOND = 'Respond',
+  PUBLIC = 'PublicAz',
+  FORKS = 'Forks',
+  FUPS = 'FollowUps'
+}
+
+export type QAViewProps = {
+  qIndex: number | undefined
+  handleMcRadio: (i: string) => void
+  value: string
+  handleValue: (s: string) => void
+  currentQ: Qz
+  userAz: CollectionRecordResponse<Az>[] | undefined
+  initialRef: React.MutableRefObject<null>
+  audience: string
+  handleAudience: (s: string) => void
+  handleImportance: (i: number) => void
+  qAView: QAViews
+  handleQAViewChange: (view: QAViews) => void
+}
+
+export type responseViewProps = {
+  handleMcRadio: (i: string) => void
+  value: string | undefined
+  handleValue: (s: string) => void
+  currentQ: Qz
+  userAz: CollectionRecordResponse<Az>[] | undefined
+  initialRef: React.MutableRefObject<null>
+}
+
+export enum Audiences {
+  PRIVATE = 'Only Me',
+  FOLLOWERS = 'My Followers',
+  ALLOWLIST = 'Allowlist',
+  PUBLIC = 'Everyone',
+  ANON = 'Anon'
 }

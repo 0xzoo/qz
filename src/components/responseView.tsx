@@ -1,32 +1,72 @@
-import { useState } from 'react'
+import { 
+  // useEffect,
+  // FocusEvent,
+  useState
+} from 'react'
 import { AzRadio } from './azRadio'
-import { Qz, Az } from '../types/types'
+import { ScaleRadio } from './scaleRadio'
+import { responseViewProps } from '../types/types'
 import {
   Textarea,
   useColorModeValue
 } from '@chakra-ui/react'
-import { CollectionRecordResponse } from '@polybase/client'
+// import { CollectionRecordResponse } from '@polybase/client'
+// import { useAuth } from '@polybase/react'
+// import { getPriorAz } from '../pb/functions'
 
-type responseViewProps = {
-  handleMcRadio: (i: string) => void
-  value: string | undefined
-  handleValue: (e: React.ChangeEvent<HTMLTextAreaElement>) => void
-  currentQ: Qz
-  userAz: CollectionRecordResponse<Az>[] | undefined
-  initialRef: React.MutableRefObject<null>
-}
+
 
 export const ResponseView = (props: responseViewProps) => {
-  const bgColor = useColorModeValue('white','gray.700')
   const [ edited, setEdited ] = useState<boolean>(false)
   const [ newValue, setNewValue ] = useState<string>()
+  const [ inFocus, setInFocus ] = useState<boolean>(false)
+  // const [ userAz, setUserAz ] = useState<CollectionRecordResponse<Az, Az>[]>()
   const placeholder = props.value
   const priorA = props.userAz && props.userAz[0]
+  const bgColor = useColorModeValue('#ffff00','gray.700')
+  const borderStyle = inFocus ? 'none' : '3px solid'
+  // const { state } = useAuth()
 
-  const handleNewValue = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+  // useEffect(() => {
+  //   console.log('currentQ', props.currentQ?.id)
+  //   getPriorAz(props.currentQ.id, state?.userId as string)
+  //     .then(az => {
+  //       if (az.length) {
+  //         setUserAz(az)
+  //         const newestA = az[0].data
+  //         switch (currentQ?.data.type) {
+  //           case 'mc':
+  //             const newestAQIndex = newestA.qIndex
+  //             setValue('')
+  //             setQIndex(newestAQIndex)
+  //             break
+  //           case 'text':
+  //             const newestAValue = newestA.value as string
+  //             setValue(newestAValue)
+  //             setQIndex(undefined)
+  //             break
+  //           case 'scale':
+  //             const newestAScaleValue = newestA.value as string
+  //             setValue(newestAScaleValue)
+  //             setQIndex(undefined)
+  //             break
+  //         }
+  //       } else {
+  //         setValue('') // !fix change to undefined
+  //         setQIndex(undefined)
+  //       }
+  //     })
+  // },[])
+
+  const handleNewTextValue = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     if (!edited) setEdited(true)
-    setNewValue(e.target.value)
-    props.handleValue(e)
+    const s = e.target.value
+    setNewValue(s)
+    props.handleValue(s)
+  }
+
+  const handleTextAreaFocus = () => {
+    setInFocus(!inFocus)
   }
 
   switch(props.currentQ.type) {
@@ -34,32 +74,31 @@ export const ResponseView = (props: responseViewProps) => {
       return (
         <AzRadio data={props.currentQ?.az as string[]} priorA={priorA} onChange={props.handleMcRadio}/>
       )
-    case 'shortText':
+    case 'text':
       return (
         <Textarea
           name='answer'
-          value={newValue}
-          placeholder={placeholder}
-          size={'sm'}
-          h={100}
-          bg={bgColor}
-          borderColor={'#e4'}
-          onChange={handleNewValue}
-          ref={props.initialRef}
-        />
-      )
-    case 'longText':
-      return (
-        <Textarea
-          name='answer'
+          variant={'unstyled'}
           value={newValue}
           placeholder={placeholder}
           size={'lg'}
           h={200}
+          p={inFocus ? 4 : 3}
           bg={bgColor}
-          borderColor={'#e4'}
+          border={borderStyle}
+          colorScheme={'linkedin'}
+          onFocus={handleTextAreaFocus}
+          onBlur={handleTextAreaFocus}
+          onChange={handleNewTextValue}
+          ref={props.initialRef}  // !fix check to see if this is necessary, else handle login modal
+        />
+      )
+    case 'scale':
+      return (
+        <ScaleRadio
           onChange={props.handleValue}
-          ref={props.initialRef}
+          value={priorA?.data.value}
+          responses={props.currentQ?.az as string[]}
         />
       )
   }

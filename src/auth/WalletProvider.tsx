@@ -45,6 +45,11 @@ export function WalletProvider ({ children }: WalletProviderProps) {
     await auth.signOut()
     setLoggedInWWallet(false)
   }, [publicKey])
+
+
+  // useEffect(() => {
+  //   if (!loggedInWWallet && state?.userId ) login()
+  // },[loggedInWWallet, state])
   
   const forceSigning = () => {
     // if (privateKey) {

@@ -17,23 +17,11 @@ import {
   ForkIcon,
   FollowUpIcon
 } from '../assets/icons'
-import { QAView, QAViews } from './qAView'
-import { Az, Qz } from '../types/types'
-import React, { useState } from 'react'
-import { CollectionRecordResponse } from '@polybase/client'
-
-
-type QAProps = {
-  qIndex: number | undefined
-  handleMcRadio: (i: string) => void
-  handleIsPrivate: (e: React.ChangeEvent<HTMLInputElement>) => void
-  handleImportance: (i: number) => void
-  value: string
-  handleValue: (e: React.ChangeEvent<HTMLTextAreaElement>) => void
-  initialRef: React.MutableRefObject<null>
-  currentQ: Qz,
-  userAz: CollectionRecordResponse<Az>[] | undefined
-}
+import { QAView } from './qAView'
+import { QAProps, QAViews } from '../types/types'
+import { useState } from 'react'
+// import { CollectionRecordResponse } from '@polybase/client'
+import { Link as ReactRouterLink } from 'react-router-dom'
 
 // ------------------------------------------
 
@@ -42,9 +30,11 @@ export const QA = (props: QAProps) => {
   const [ qAView, setQAView ] = useState<QAViews>(QAViews.RESPOND)
 
   const {
-    // handleValue,
     currentQ
   } = props
+  const stem = currentQ?.stem
+  const owner = currentQ?.owner // !fix in db - 0x...d34d?
+
 
   const handleQAViewChange = (view: QAViews) => {
     setQAView(view)
@@ -60,7 +50,9 @@ export const QA = (props: QAProps) => {
     <Flex
       direction={'column'}
       justifyContent={'space-between'}
-      minH={'100%'}
+      h={'100%'}
+      w={'100%'}
+      flexShrink={0}
     >
       <Flex
         flexDir={'column'}
@@ -81,8 +73,9 @@ export const QA = (props: QAProps) => {
             textAlign={'left'}
             fontFamily={'Libre Franklin'}
             color={useColorModeValue('gray.900', 'white')}
+            maxW={'750px'}
           >
-            {currentQ?.stem}
+            {stem}
           </Heading>
         </Box>
         <Flex
@@ -92,7 +85,15 @@ export const QA = (props: QAProps) => {
           w={'100%'}
         >
           <Box>
-            <Text mb={[2,0]}>by <Link>{currentQ?.owner.name ? currentQ?.owner.name : currentQ?.owner.id.slice(0,6)}</Link></Text>
+            <Text mb={[2,0]}>
+              by{' '}
+              <Link
+                as={ReactRouterLink}
+                to={owner?.id || '4n0n'}
+              >
+                {owner?.name ? owner?.name : owner?.id.slice(0,6)}
+              </Link>
+            </Text>
           </Box>
           <Flex
             flexDir={'row'}
@@ -136,7 +137,13 @@ export const QA = (props: QAProps) => {
         </Flex>
       </Flex>
       <Divider mx={[0,4]} w={'auto'}/>
-      <QAView {...qAViewProps} /> {/* // !fix */}
+      <Flex
+        flexDir={'column'}
+        justifyContent={'center'}
+        alignItems={'center'}
+      >
+        <QAView {...qAViewProps} /> {/* // !fix */}
+      </Flex>
     </Flex>
   )
 }

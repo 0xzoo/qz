@@ -12,7 +12,7 @@ type ToggleProps = {
 export const PrivateToggle = memo(function PrivateToggle(props: ToggleProps) {
   return (
     <FormControl display='flex' alignItems='center' mt={4}>
-      <FormLabel htmlFor='isPrivateA' mb='0'>
+      <FormLabel htmlFor='isPrivateA' mb='0' color={'linkedin.400'}>
         Private
       </FormLabel>
       <Switch id='isPrivateA' onChange={props.onChange} />

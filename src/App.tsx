@@ -12,7 +12,8 @@ import { Home } from "./routes/Home"
 // import { Qz } from './routes/Qz'
 import { Profile } from "./routes/Profile"
 
-export const polybase = new Polybase({   defaultNamespace: "pk/0x4d5de3518af7848d4997a0749bcdfa49582ba156231afdb227818cf802dc597d593c0faa1604eaa2e0ac3867555cf07fe0c902e1b7893cd7a9b3feb0e4bd1489/Qz_a" });
+export const namespace = "pk/0x4d5de3518af7848d4997a0749bcdfa49582ba156231afdb227818cf802dc597d593c0faa1604eaa2e0ac3867555cf07fe0c902e1b7893cd7a9b3feb0e4bd1489/Qzz"
+export const polybase = new Polybase({ defaultNamespace: namespace});
 const auth = new Auth()
 
 const router = createBrowserRouter([

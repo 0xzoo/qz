@@ -18,7 +18,8 @@ import { QCardSmall } from './qCardSmall'
 import { SwipeEventData, useSwipeable } from 'react-swipeable'
 // import { InView } from 'react-intersection-observer'
 import { 
-  CollectionList,
+  // CollectionList,
+  CollectionRecordResponse,
   Query
 } from "@polybase/client"
 import { RootContext } from '../routes/Root'
@@ -30,7 +31,7 @@ export type CategoryProps = {
   name: string
   tag: string
   loading: boolean
-  data: CollectionList<any> | null
+  data: CollectionRecordResponse<Qz,Qz>[]
   query: Query<Qz>
 }
 
@@ -45,6 +46,11 @@ interface CustomTabPanelProps {
   ref?: React.ForwardedRef<HTMLDivElement>
 }
 
+const smW = '100%'
+const mdW = 500
+const lW = 700
+const wArray = [smW, mdW, lW]
+
 const CustomTabPanel: React.ForwardRefExoticComponent<CustomTabPanelProps> = React.forwardRef<HTMLDivElement, CustomTabPanelProps>((props, ref) => {
   let panelProps = useTabPanel({ ...props, ref })
   panelProps.hidden = false
@@ -53,9 +59,10 @@ const CustomTabPanel: React.ForwardRefExoticComponent<CustomTabPanelProps> = Rea
   return (
     <Box
       {...panelProps}
-      p={[0,4]}
+      // pt={[0,4]}
+      pb={'20vh'}
       // borderRight={['.5px solid']}
-      w={['100vw', 400, 500]}
+      w={wArray}
       flexShrink={0}
       ref={ref}
       overflowY={'scroll'}
@@ -74,12 +81,13 @@ export const QzTabs = ({...QzPanelsProps}: QzPanelsProps): React.ReactElement =>
   const { 
     // qz,
     setQz,
+    setQueueIndex,
     setSearchParams
   } = rootContext
 
   const { categories } = QzPanelsProps
   const refs = categories.reduce((acc:{[key: number]: React.RefObject<HTMLDivElement>}, category) => {
-    acc[category.id] = useRef(null);
+    acc[category.id] = useRef(null)
     return acc
   }, {})
   const tabMax = categories.length - 1
@@ -88,9 +96,9 @@ export const QzTabs = ({...QzPanelsProps}: QzPanelsProps): React.ReactElement =>
   const calcTabsTranslate = (index: number) => {
     const vWidth = window.innerWidth
     if (vWidth > 768) {
-      return (0 - index * 500)
+      return (0 - index * lW)
     } else if (vWidth > 480) {
-      return (0 - index * 400)
+      return (0 - index * mdW)
     } else {
       return (0 - index * vWidth)
     }
@@ -168,29 +176,35 @@ export const QzTabs = ({...QzPanelsProps}: QzPanelsProps): React.ReactElement =>
       lazyBehavior={'keepMounted'}
       index={tabIndex}
       onChange={handleTabsChange}
-      colorScheme={'linkedin'}
-      // h={'100%'}
+      variant={'unstyled'}
       display={'flex'}
       flexDir={'column'}
       id="SwipeController"
       overflowX={'hidden'}
       overflowY={'clip'}
       p={0}
-      w={['100vw', 400, 500]}
+      w={wArray}
+      pos={'relative'}
       {...swipeHandlers}
     >
       <TabList
-        position={['revert','absolute']}
-        top={4}
-        left={120}
+        // position={['revert','absolute']}
+        // top={4}
+        // left={120}
         flexShrink={0}
         fontFamily={'Poppins, sans-serif'}
+        w={wArray}
+        bg={useColorModeValue('white', 'gray.800')}
+        pos={['static', 'fixed']}
+        zIndex={2}
       >
         {categories.map((category: CategoryProps) => (
           <Tab
             key={category.id}
             fontSize={['lg','2xl']}
             fontWeight={[400, 500]}
+            pt={1}
+            _selected={{ color: '#008CC9' }}
           >
             {category.name.toLowerCase()}
           </Tab>
@@ -209,6 +223,7 @@ export const QzTabs = ({...QzPanelsProps}: QzPanelsProps): React.ReactElement =>
         // scrollSnapType={'x mandatory'}
         // onScroll={handleScroll}
         h={'100%'}
+        pt={[0,8]}
       >
         {categories.map((category: CategoryProps, index: number) => (
           <CustomTabPanel
@@ -220,12 +235,19 @@ export const QzTabs = ({...QzPanelsProps}: QzPanelsProps): React.ReactElement =>
               <Spinner />
             ) : (
               <List>
-                {category.data?.data.map((res: any, i: number) => {
+                {category.data && category.data.map((res: any, i: number) => {
 
                   const params = { q: res.data.id }
                   const onClick = () => {
+                    let newQueue = [...category.data]
+                    if (i > 0) {
+                      newQueue?.splice(i, 1)
+                      newQueue?.unshift(res)
+                    }
+                    console.log('newQueue', newQueue)
+                    setQz(newQueue as CollectionRecordResponse<Qz, Qz>[])
+                    setQueueIndex(i)
                     setSearchParams(params)
-                    setQz(category.data?.data)
                   }
                   return (
                     <ListItem key={i}>

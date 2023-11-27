@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import {
   Box,
   Button,
@@ -18,12 +18,14 @@ import {
   useDisclosure,
   useColorModeValue,
 } from "@chakra-ui/react"
-import { QTypeSelect } from './qTypeSelect'
+// import { QTypeSelect } from './qTypeSelect'
 import { DefaultResponseView } from './defaultResponseView'
 import { nanoid } from 'nanoid'
 import { useAuth, usePolybase } from '@polybase/react'
 import { useWallet } from "../auth/useWallet"
 import { Qz } from "../types/types";
+import { QTypeRadio } from "./qTypeRadio";
+import { RootContext } from "../routes/Root"
 
 type createQProps = {
   parent?: Qz
@@ -35,17 +37,13 @@ export const CreateQModal = (props: createQProps) => {
   const [ isError, setIsError ] = useState(false)
   const [ parent, setParent ] = useState<Qz>()
   const [ responses, setResponses ] = useState(['Yes','No'])
-  // enum qzType {
-  //   'mc',
-  //   'shortText',
-  //   'longText',
-  //   'ranking'
-  // }
-  const [ qType, setQType ] = useState('shortText')
+  const [ qType, setQType ] = useState('text')
   const [ hasImportance, setHasImportance ] = useState(false)
   const polybase = usePolybase()
   const { login, loggedInWWallet } = useWallet()
   const authState = useAuth().state
+  const rootContext = useContext(RootContext)
+  const setLoading = rootContext.setLoading
 
   useEffect(() => {
     let parent = props.parent
@@ -62,8 +60,16 @@ export const CreateQModal = (props: createQProps) => {
 
   const initialRef = React.useRef(null)
 
-  const handleQTypeSelect = (e: React.ChangeEvent<HTMLSelectElement>): void => {
-    setQType(e.target.value)
+  const handleQTypeSelect = (e: string): void => {
+    switch (e) {
+      case 'scale':
+        if (responses[0] == 'Yes' && responses[1] == 'No') setResponses(['Agree', 'Disagree'])
+        break
+      case 'mc':
+        if (responses[0] == 'Agree' && responses[1] == 'Disagree') setResponses(['Yes', 'No'])
+        break
+    }
+    setQType(e)
   }
 
   const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>): void => {
@@ -87,9 +93,14 @@ export const CreateQModal = (props: createQProps) => {
   }
 
   const handleResponseChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
-    let newResponses = responses
     const key = e.currentTarget.ariaPosInSet as unknown as number
-    newResponses[key] = e.currentTarget.value
+    const newResponses = responses.map((a, i) => {
+      if (i == key) {
+        return e.currentTarget.value
+      } else {
+        return a
+      }
+    })
     setResponses(newResponses)
   }
 
@@ -99,25 +110,31 @@ export const CreateQModal = (props: createQProps) => {
       setIsError(true)
       return
     } else { setIsError(false) }
+    setLoading(true)
     const publicKey = authState?.userId as string
+    const anon = false // fix!! implement an0n
     const user = await polybase.collection('User').record(publicKey).get().catch((e) => {throw e})
     const timestamp = Date.now()
+    const finalResponses = (qType == 'text')
+      ? undefined
+      : responses
 
     let newQ: any = [
       nanoid(), 
-      user,
       prompt,
       qType,
       timestamp,
+      anon,
+      user,
       parent,
+      finalResponses
     ]
 
-    if (qType === 'mc') newQ.push(responses)
-    if (hasImportance) newQ.push(hasImportance) // fix! remove
-
-    await polybase.collection('Qz').create(newQ).catch((e) => {throw e})
+    const pubQ = await polybase.collection('Qz').create(newQ).catch((e) => {throw e})
+    console.log('pubQ', pubQ)
     // !fix subtract creation cost from user
     // await db.collection('User').record(publicKey).call('createQ')
+    setLoading(false)
     closeModal()
   }
 
@@ -135,7 +152,7 @@ export const CreateQModal = (props: createQProps) => {
       <Box 
         onClick={handleCreateQModalButton}
       >
-        <Image src={useColorModeValue('/thiqPlus.svg', '/thiwqPlus.svg')} alt='Create a new Q' h={50} w={50} cursor={'pointer'}/>
+        <Image src={useColorModeValue('/thiqPlus.svg', '/thiwqPlus.svg')} alt='Create a new Q' h={['50px','60px']} w={['50px','60px']} cursor={'pointer'}/>
       </Box>
 
       <Modal isOpen={isOpen} onClose={closeModal} initialFocusRef={initialRef} >
@@ -166,7 +183,8 @@ export const CreateQModal = (props: createQProps) => {
           </FormControl>
           <FormControl mb={6}>
             <FormLabel>Type</FormLabel>
-            <QTypeSelect onChange={handleQTypeSelect} value={qType} />
+            {/* <QTypeSelect onChange={handleQTypeSelect} value={qType} /> */}
+            <QTypeRadio onChange={handleQTypeSelect} value={qType} />
           </FormControl>
           <DefaultResponseView 
             type={qType} 

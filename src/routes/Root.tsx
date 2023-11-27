@@ -2,59 +2,63 @@ import {
   useMemo,
   createContext, 
   useState,
-  // useEffect 
 } from 'react'
 import { 
   Flex,
-  // Box
 } from '@chakra-ui/react'
-// import { useSwipeable } from 'react-swipeable'
-// import { usePolybase, useCollection } from '@polybase/react'
 import { Outlet, SetURLSearchParams, useSearchParams } from "react-router-dom"
 import { NavBar } from "../components/navbar"
-// import { CreateQModal } from "../components/createQ"
-// import { QzTabs } from '../components/qzTabs'
+import { LoadingSpinner } from '../components/loadingSpinner'
 import { Qz } from './Qz'
 import { Qz as qType } from '../types/types'
 import { CollectionRecordResponse } from '@polybase/client'
-// import { usePolybase } from '@polybase/react'
-
 
 
 export interface RootContextValue {
-  qz: CollectionRecordResponse<qType, qType>[] | undefined
-  setQz: React.Dispatch<React.SetStateAction<CollectionRecordResponse<qType, qType>[] | undefined>>
+  qz: CollectionRecordResponse<qType, qType>[]
+  setQz: React.Dispatch<React.SetStateAction<CollectionRecordResponse<qType, qType>[]>>
+  queueIndex: number
+  setQueueIndex: React.Dispatch<React.SetStateAction<number>>
   searchParams: URLSearchParams | undefined
   setSearchParams: SetURLSearchParams
+  setLoading: React.Dispatch<React.SetStateAction<boolean>>
 }
 
 export const RootContext = createContext<RootContextValue>({
-  qz: undefined,
+  qz: [],
   setQz: () => {},
-  searchParams: undefined, // qId -> Qz
-  setSearchParams: () => {}
+  queueIndex: 0,
+  setQueueIndex: () => {},
+  searchParams: undefined,
+  setSearchParams: () => {},
+  setLoading: () => {}
 })
 
 export default function Root() {
-  console.log('wholerootreload')
+  console.log('rootreload')
 
-  const [ qz, setQz ] = useState<CollectionRecordResponse<qType, qType>[]>()
+  const [ qz, setQz ] = useState<CollectionRecordResponse<qType, qType>[]>([])
+  const [ queueIndex, setQueueIndex ] = useState<number>(0)
+  const [ loading, setLoading ] = useState<boolean>(false)
   const [ searchParams, setSearchParams ] = useSearchParams()
   
   const hasQ = searchParams.get('q')
-  console.log(hasQ)
 
   const value = useMemo(() => ({
     qz,
     setQz,
+    queueIndex,
+    setQueueIndex,
     searchParams,
-    setSearchParams
+    setSearchParams,
+    setLoading
   }), [qz, searchParams])
 
   return (
     <RootContext.Provider value={value}>
       <Flex direction={'column'} h='100vh'>
         <NavBar />
+        {loading && <LoadingSpinner />}
         <Outlet />
         {hasQ && <Qz />}
       </Flex>

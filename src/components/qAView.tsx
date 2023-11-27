@@ -1,43 +1,29 @@
-import { Az, Qz } from "../types/types"
+import { 
+  // Az,
+  // Qz,
+  QAViewProps,
+  QAViews
+} from "../types/types"
 import {
   Container,
   Collapse,
   Box
 } from '@chakra-ui/react'
 import { ResponseView } from "./responseView"
-import { PrivateToggle } from "./privateToggle"
 import { ImportanceSlider } from "./importanceSlider"
 import { PublicAzForQ } from "./publicAzForQ"
-import { CollectionRecordResponse } from "@polybase/client"
-
-export enum QAViews {
-  RESPOND = 'Respond',
-  PUBLIC = 'PublicAz',
-  FORKS = 'Forks',
-  FUPS = 'FollowUps'
-}
-
-type QAViewProps = {
-  qIndex: number | undefined
-  handleMcRadio: (i: string) => void
-  value: string
-  handleValue: (e: React.ChangeEvent<HTMLTextAreaElement>) => void
-  currentQ: Qz
-  userAz: CollectionRecordResponse<Az>[] | undefined
-  initialRef: React.MutableRefObject<null>
-  handleIsPrivate: (e: React.ChangeEvent<HTMLInputElement>) => void
-  handleImportance: (i: number) => void
-  qAView: QAViews
-  handleQAViewChange: (view: QAViews) => void
-}
+// import { CollectionRecordResponse } from "@polybase/client"
+// import { PrivacyDrawer } from "./privacyDrawer"
+import { PrivacyDropdown } from "./privacyDropdown"
 
 export const QAView = (props: QAViewProps) => {
-  return props.currentQ && (
+  const qData = props.currentQ
+  return qData && (
     <Container
-      ml={0}
+      // ml={0}
       my={8}
       minH={'30vh'}
-      maxH={'100vh'}
+      // maxH={'100vh'}
       // overflowY={'hidden'}
     >
       <Collapse in={props.qAView == QAViews.RESPOND}>
@@ -49,12 +35,13 @@ export const QAView = (props: QAViewProps) => {
           initialRef={props.initialRef}
           userAz={props.userAz}
         />
-        <PrivateToggle onChange={props.handleIsPrivate} />
-        {props.currentQ?.importance ? (<ImportanceSlider handleImportance={props.handleImportance}/>):('')}
+        {/* <PrivacyDrawer onChange={props.handleAudience} value={props.audience}/> */}
+        <PrivacyDropdown onChange={props.handleAudience} value={props.audience} />
+        {qData.importance ? (<ImportanceSlider handleImportance={props.handleImportance}/>):('')}
       </Collapse>
       <Collapse in={props.qAView == QAViews.PUBLIC}>
         <Box>
-          <PublicAzForQ currentQ={props.currentQ}/>
+          <PublicAzForQ currentQ={qData}/>
         </Box>
       </Collapse>
       <Collapse in={props.qAView == QAViews.FORKS}>

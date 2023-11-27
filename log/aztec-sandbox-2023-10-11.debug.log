@@ -1,0 +1,8 @@
+{"level":"info","message":"Setting up Aztec Sandbox v0.8.10 (nargo 0.16.0-aztec.1), please stand by...","namespace":"aztec:sandbox","timestamp":"2023-10-11T22:12:17.908Z"}
+{"level":"warn","message":"Failed to connect to Ethereum node at http://127.0.0.1:8545/. Retrying...","namespace":"aztec:sandbox","timestamp":"2023-10-11T22:12:19.036Z"}
+{"level":"warn","message":"Failed to connect to Ethereum node at http://127.0.0.1:8545/. Retrying...","namespace":"aztec:sandbox","timestamp":"2023-10-11T22:12:21.104Z"}
+{"level":"warn","message":"Failed to connect to Ethereum node at http://127.0.0.1:8545/. Retrying...","namespace":"aztec:sandbox","timestamp":"2023-10-11T22:12:23.175Z"}
+{"level":"warn","message":"Failed to connect to Ethereum node at http://127.0.0.1:8545/. Retrying...","namespace":"aztec:sandbox","timestamp":"2023-10-11T22:12:25.244Z"}
+{"level":"warn","message":"Failed to connect to Ethereum node at http://127.0.0.1:8545/. Retrying...","namespace":"aztec:sandbox","timestamp":"2023-10-11T22:12:27.313Z"}
+{"level":"warn","message":"Failed to connect to Ethereum node at http://127.0.0.1:8545/. Retrying...","namespace":"aztec:sandbox","timestamp":"2023-10-11T22:12:29.380Z"}
+{"level":"warn","message":"Failed to connect to Ethereum node at http://127.0.0.1:8545/. Retrying...","namespace":"aztec:sandbox","timestamp":"2023-10-11T22:12:31.450Z"}

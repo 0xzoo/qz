@@ -78,7 +78,7 @@ const overrides = {
   styles: {
     global: () => ({
       body: {
-        fontFamily: 'body',
+        fontFamily: 'Libre Franklin',
         // color: mode('gray.800', 'whiteAlpha.900')(props),
         // bg: mode('white', 'gray.800')(props),
         // lineHeight: 'base',

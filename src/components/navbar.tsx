@@ -48,6 +48,8 @@ const NavBarContainer = ({ children }: any) => { // fix! type dec
       w="100%"
       bgColor={useColorModeValue('#ff0', 'transparent')}
       p={4}
+      pos={'fixed'}
+      zIndex={9999}
     >
       { children }
     </Flex>
@@ -86,7 +88,12 @@ export const NavBar = () => {
 
   return (
     <NavBarContainer>
-      <Link as={RouterLink} to={'/'} zIndex={2000}>
+      <Link
+        as={RouterLink}
+        to={'/'} 
+        zIndex={2000}
+        bg={'transparent'}
+      >
         <Logo
           w="100px"
         />
@@ -108,8 +115,8 @@ export const NavBar = () => {
                   Profile
                 </MenuItem>
               </Link>
-              <MenuItem>My Qz</MenuItem>
-              <MenuItem>My Az</MenuItem>
+              {/* <MenuItem>My Qz</MenuItem>
+              <MenuItem>My Az</MenuItem> */}
               <MenuDivider />
               <MenuItem
 
