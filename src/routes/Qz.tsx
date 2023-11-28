@@ -39,6 +39,7 @@ import {
 import { useWallet } from "../auth/useWallet"
 import { RootContext } from "./Root"
 import { QA } from '../components/qA'
+import { ArrowNavs } from "../components/arrowsNav"
 import { CollectionRecordResponse } from "@polybase/client"
 import {
   getUser,
@@ -49,6 +50,7 @@ import {
   getNewQz,
   incrAz
 } from "../pb/functions"
+import { embeddings } from "../langchain/huggingface"
 
 // controller for QAz
 // manage queue
@@ -149,6 +151,26 @@ export const Qz = () => {
           }
         }
       })
+
+    // const inputs = {
+    //   inputs: "Why is the sky blue?"
+    // }
+    // embeddings.client.tokenClassification(inputs)
+    //   .then((tags) => {
+    //     console.log('tags', tags)
+    //   }
+    //   )
+
+    // embeddings.embedQuery(inputs.inputs)
+    //   .then(res => {
+    //     console.log('!', res)
+    //   })
+
+    // const embedding = embeddings.client.tokenClassification(inputs)
+    //   .then(res => {
+    //     console.log('res', res)
+    //   })
+    // console.log('embedding', embedding)
   },[])
 
   // should prob do this in qA
@@ -190,30 +212,38 @@ export const Qz = () => {
     setTimeout(() => {setSearchParams({})}, 200)
   }
 
-  const getNextQ = () => {
-    // get next qId and set to params
-    let nextQ = qz[currentQueueIndex + 1]
-    // if (nextQ.data.id == firstQ?.data.id) {
-    //   console.log('skipping q', nextQ.data.id)
-    //   const newQz = qz
-    //   newQz.splice(currentQueueIndex, 1)
-    //   setQz(newQz)
-    //   nextQ = newQz[currentQueueIndex + 2]
-    // }
-    console.log('nextQId', nextQ.data.id)
-    const params = { q: nextQ.data.id }
-    const newQueue = [...currentQueue, qz[currentQueueIndex + 1]]
-    setCurrentQueueIndex(currentQueueIndex + 1)
+  const getNextQ = (nextQ: CollectionRecordResponse<QType>) => {
+    const newQueue = [...currentQueue, nextQ]
     setCurrentQueue(newQueue)
-    setQueueIndex(queueIndex + 1)
-    setSearchParams(params)
-    setCurrentQ(nextQ)
-    console.log('newQueue', newQueue)
+  }
+
+  const nextQ = () => {
+    if (currentQueueIndex < qz.length - 1) {
+      const nextQ = qz[currentQueueIndex + 1]
+      if (currentQueueIndex == currentQueue.length - 1) getNextQ(nextQ)
+      setValue('')
+      setQueueIndex(queueIndex + 1)
+      const params = { q: nextQ.data.id }
+      setCurrentQ(nextQ)
+      setSearchParams(params)
+      setCurrentQueueIndex(currentQueueIndex + 1)
+    }
+  }
+
+  const prevQ = () => {
+    if (currentQueueIndex > 0) {
+      const prevQ = qz[currentQueueIndex - 1]
+      const params = { q: prevQ.data.id }
+      setSearchParams(params)
+      setCurrentQ(prevQ)
+      setQueueIndex(queueIndex - 1)
+      setCurrentQueueIndex(currentQueueIndex - 1)
+    }
   }
 
   const onSkipQ = () => {
     // change index in currentQueue
-    getNextQ()
+    nextQ()
     // navigate to next in queue
   }
 
@@ -340,6 +370,10 @@ export const Qz = () => {
     setResponse(s)
   }
 
+  const handleArrowClicks = (s: string) => {
+    s == 'Back' ? prevQ() : nextQ()
+  }
+
   const initialRef = useRef(null)
 
   return (
@@ -442,7 +476,7 @@ export const Qz = () => {
             </Flex>
           </DrawerFooter>
           {/* <DrawerCloseButton top={20} size={'lg'}/> */}
-          {/* <ArrowNavs /> */}
+          <ArrowNavs onClick={handleArrowClicks}/>
         </DrawerContent>
       {/* </Form> */}
     </Drawer>

@@ -7,8 +7,15 @@ import {
   ChevronRightIcon
 } from '@chakra-ui/icons'
 
+type ArrowNavProps = {
+  onClick: () => void
+}
 
-export const ArrowNavs = () => {
+export const ArrowNavs = (props: ArrowNavProps) => {
+  const onClick = (e: any) => {
+    console.log(e)
+  }
+
   return (
     <>
       <Tooltip
@@ -25,7 +32,8 @@ export const ArrowNavs = () => {
           variant={'ghost'}
           position={'absolute'}
           left={20}
-          top={'45%'}
+          top={'66%'}
+          onClick={() => props.onClick('Back')}
         />
       </Tooltip>
       <Tooltip
@@ -42,7 +50,8 @@ export const ArrowNavs = () => {
           variant={'ghost'}
           position={'absolute'}
           right={20}
-          top={'45%'}
+          top={'66%'}
+          onClick={() => props.onClick('Forward')}
         />
       </Tooltip>
     </>
