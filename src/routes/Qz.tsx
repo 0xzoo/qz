@@ -344,7 +344,7 @@ export const Qz = () => {
     // }
     // update az
     setLoading(false) // !fix switch to translate animation
-    // nextQ()
+    nextQ()
   }
 
   const handleMcRadio = useCallback((i: string) => {
