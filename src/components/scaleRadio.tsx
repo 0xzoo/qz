@@ -33,7 +33,7 @@ import { Az } from '../types/types'
 
 type ScaleRadioProps = {
   onChange?: (e: string) => void,
-  priorA: CollectionRecordResponse<Az, Az> | undefined
+  priorA?: CollectionRecordResponse<Az, Az>
   responses: string[]
 }
 
