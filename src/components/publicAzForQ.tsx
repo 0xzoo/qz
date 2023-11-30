@@ -10,6 +10,7 @@ import {
   Link,
   Text
 } from '@chakra-ui/react'
+import { Link as ReactRouterLink } from 'react-router-dom'
 import {
   Qz,
   Az
@@ -67,7 +68,15 @@ export const PublicAzForQ = (props: PublicAzForQProps) => {
                     pb={6}
                   >
                     <Link><Text fontSize={'sm'}>{res.data.value}</Text></Link>
-                    <Text fontSize={'xs'}>by <Link>{res.data.owner?.name ? res.data.owner?.name : res.data.owner?.id.slice(0,6)}</Link></Text>
+                    <Text fontSize={'xs'}>
+                      by 
+                      <Link
+                        as={ReactRouterLink}
+                        to={res.data.owner?.id}
+                      >
+                        {res.data.owner?.name ? res.data.owner.name : res.data.owner?.id.slice(0,6)}
+                      </Link>
+                    </Text>
                   </Box>
                 </Flex>
               </ListItem>
@@ -98,7 +107,15 @@ export const PublicAzForQ = (props: PublicAzForQProps) => {
                       pb={6}
                     >
                       <Link><Text fontSize={'sm'}>{res.data.value}</Text></Link>
-                      <Text fontSize={'xs'}>by <Link>{res.data.owner?.name ? res.data.owner.name : res.data.owner?.id.slice(0,6)}</Link></Text>
+                      <Text fontSize={'xs'}>
+                        by 
+                        <Link
+                          as={ReactRouterLink}
+                          to={res.data.owner?.id}
+                        >
+                          {res.data.owner?.name ? res.data.owner.name : res.data.owner?.id.slice(0,6)}
+                        </Link>
+                      </Text>
                     </Box>
                   </Flex>
                 </ListItem>
