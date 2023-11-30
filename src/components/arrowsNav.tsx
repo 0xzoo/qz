@@ -8,52 +8,54 @@ import {
 } from '@chakra-ui/icons'
 
 type ArrowNavProps = {
-  onClick: () => void
+  onClick: (s: string) => void,
+  queueIndex: number,
+  qzLength: number
 }
 
 export const ArrowNavs = (props: ArrowNavProps) => {
-  const onClick = (e: any) => {
-    console.log(e)
-  }
-
   return (
     <>
-      <Tooltip
-        label={'Back'}
-        color={'white'}
-        bgColor={'gray.700'}
-        defaultIsOpen={true}
-      >
-        <IconButton 
-          aria-label='Back'
-          icon={<ChevronLeftIcon boxSize={10} />}
-          size={'lg'}
-          colorScheme='blue'
-          variant={'ghost'}
-          position={'absolute'}
-          left={20}
-          top={'66%'}
-          onClick={() => props.onClick('Back')}
-        />
-      </Tooltip>
-      <Tooltip
-        label={'Skip'}
-        color={'white'}
-        bgColor={'gray.700'}
-        defaultIsOpen={true}
-      >
-        <IconButton
-          aria-label='Forward'
-          icon={<ChevronRightIcon boxSize={10} />}
-          size={'lg'}
-          colorScheme='blue'
-          variant={'ghost'}
-          position={'absolute'}
-          right={20}
-          top={'66%'}
-          onClick={() => props.onClick('Forward')}
-        />
-      </Tooltip>
+      { props.queueIndex > 0 && (
+        <Tooltip
+          label={'Back'}
+          color={'black'}
+          bgColor={'transparent'}
+          defaultIsOpen={false}
+        >
+          <IconButton 
+            aria-label='Back'
+            icon={<ChevronLeftIcon boxSize={10} />}
+            size={'lg'}
+            // colorScheme={''}
+            variant={'ghost'}
+            position={'absolute'}
+            left={[6, 20]}
+            // bottom={['10%', '66%']}
+            onClick={() => props.onClick('Back')}
+          />
+        </Tooltip>
+      )}
+      { props.queueIndex < props.qzLength -1 && (
+        <Tooltip
+          label={'Skip'}
+          color={'black'}
+          bgColor={'transparent'}
+          defaultIsOpen={false}
+        >
+          <IconButton
+            aria-label='Forward'
+            icon={<ChevronRightIcon boxSize={10} />}
+            size={'lg'}
+            // colorScheme={'gray'}
+            variant={'ghost'}
+            position={'absolute'}
+            right={[4, 20]}
+            // top={'66%'}
+            onClick={() => props.onClick('Forward')}
+          />
+        </Tooltip>
+      )}
     </>
   )
 }

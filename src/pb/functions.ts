@@ -8,6 +8,7 @@ import {
   Qz,
   Az
 } from '../types/types'
+// import { Auth } from "@polybase/auth" 
 
 export async function listAzToQ (qId: string) {
   const collectionReference = polybase.collection("Az")
@@ -84,6 +85,33 @@ export async function getPriorAz (qId: string, userId?: string) {
   } else {
     return []
   }
+}
+
+export async function getUserAz (userId: string) {
+  // const auth = new Auth()
+  // polybase.signer(async () => {
+  //   return {
+  //     h: 'eth-personal-sign',
+  //     sig: await auth.ethPersonalSign('Confirm')
+  //   }
+  // })
+
+  const records: CollectionList<Az> = await polybase.collection("PubAz")
+    .where('owner', '==', polybase.collection("User").record(userId))
+    .sort('timestamp', 'desc')
+    .get()
+  let { data: priorAzData } = records
+
+  const privateRecords: CollectionList<Az> = await polybase.collection("PrivAz")
+    .where('owner', '==', polybase.collection("User").record(userId))
+    .sort('timestamp', 'desc')
+    .get()
+  const { data: priorPrivateAzData } = privateRecords
+  if (priorPrivateAzData.length) {
+    console.log('priorPrivateAzData', priorPrivateAzData)
+    priorAzData.push(...priorPrivateAzData)
+  }
+  return priorAzData
 }
 
 const chooseCollection = (audience: string) => {

@@ -50,7 +50,7 @@ import {
   getNewQz,
   incrAz
 } from "../pb/functions"
-import { embeddings } from "../langchain/huggingface"
+// import { embeddings } from "../langchain/huggingface"
 
 // controller for QAz
 // manage queue
@@ -80,7 +80,6 @@ export const Qz = () => {
 
   // Q + A vars
   const firstQ = qz.length ? qz[0] : undefined
-  console.log('firstQ', firstQ?.data.id)
   const [ currentQ, setCurrentQ ] = useState<CollectionRecordResponse<QType> | undefined >(firstQ)
   const [ currentQueue, setCurrentQueue ] = useState<CollectionRecordResponse<QType, QType>[]>([])
   const [ currentQueueIndex, setCurrentQueueIndex ] = useState<number>(0)
@@ -175,8 +174,8 @@ export const Qz = () => {
 
   // should prob do this in qA
   useEffect(() => {
-    console.log('currentQ', currentQ?.data.id)
-    getPriorAz(currentQ?.data.id as string, state?.userId as string)
+    // console.log('currentQ', currentQ?.data.id)
+    getPriorAz(qId as string, state?.userId as string)
       .then(az => {
         if (az.length) {
           setUserAz(az)
@@ -196,15 +195,18 @@ export const Qz = () => {
               const newestAScaleValue = newestA.value as string
               console.log('newestAScaleValue', newestAScaleValue)
               setValue(newestAScaleValue)
+              setResponse(newestAScaleValue)
               setQIndex(undefined)
               break
           }
         } else {
-          setValue('') // !fix change to undefined
+          setValue('') // !fix use undefined
+          setResponse('')
           setQIndex(undefined)
+          setUserAz([])
         }
       })
-  },[currentQ])
+  },[qId])
 
   const onCloseQz = () => {
     setQueueIndex(currentQueueIndex)
@@ -222,9 +224,10 @@ export const Qz = () => {
       const nextQ = qz[currentQueueIndex + 1]
       if (currentQueueIndex == currentQueue.length - 1) getNextQ(nextQ)
       setValue('')
+      // setResponse('')
+      setCurrentQ(nextQ)
       setQueueIndex(queueIndex + 1)
       const params = { q: nextQ.data.id }
-      setCurrentQ(nextQ)
       setSearchParams(params)
       setCurrentQueueIndex(currentQueueIndex + 1)
     }
@@ -234,17 +237,13 @@ export const Qz = () => {
     if (currentQueueIndex > 0) {
       const prevQ = qz[currentQueueIndex - 1]
       const params = { q: prevQ.data.id }
-      setSearchParams(params)
+      setValue('')
+      // setResponse('')
       setCurrentQ(prevQ)
+      setSearchParams(params)
       setQueueIndex(queueIndex - 1)
       setCurrentQueueIndex(currentQueueIndex - 1)
     }
-  }
-
-  const onSkipQ = () => {
-    // change index in currentQueue
-    nextQ()
-    // navigate to next in queue
   }
 
   // !fix
@@ -440,10 +439,10 @@ export const Qz = () => {
             </Flex>
           </DrawerBody>
           <DrawerFooter>
-            <Flex direction={'row'} justifyContent={'space-between'} w={'100%'}>
-              <Button variant='outline' mr={3} onClick={onSkipQ}>
+            <Flex direction={'row'} justifyContent={'center'} w={'100%'}>
+              {/* <Button variant='outline' mr={3} onClick={onSkipQ}>
                 Skip
-              </Button>
+              </Button> */}
               {/* !fix users should be able to skip even if theyve responded */}
               { loggedInWWallet 
                   ? userAz?.length
@@ -474,9 +473,10 @@ export const Qz = () => {
                     </Button>
               )}
             </Flex>
+            <ArrowNavs onClick={handleArrowClicks} queueIndex={currentQueueIndex} qzLength={qz.length}/>
           </DrawerFooter>
           {/* <DrawerCloseButton top={20} size={'lg'}/> */}
-          <ArrowNavs onClick={handleArrowClicks}/>
+          
         </DrawerContent>
       {/* </Form> */}
     </Drawer>

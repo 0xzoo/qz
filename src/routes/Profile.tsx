@@ -28,6 +28,7 @@ import { QCardSmall } from "../components/qCardSmall"
 import { ACardSmall } from "../components/aCardSmall"
 import { RootContext } from "./Root"
 import { polybase } from "../App"
+import { getUserAz } from "../pb/functions"
 // export interface ProfileProps {
 //   userId: string
 // }
@@ -51,6 +52,7 @@ export const Profile = () => {
   console.log('authState', state)
   const userId = state && state.userId
   const [ following, setFollowing ] = useState<boolean>(false)
+  const [ az, setAz ] = useState<CollectionRecordResponse<Az,Az>[]>()
 
   // Css vars
   const borderColor = useColorModeValue('gray.300','gray.600')
@@ -81,6 +83,13 @@ export const Profile = () => {
   const azQuery = polybase.collection('PubAz').where("owner","==", owner).sort('timestamp', 'desc')
   const { data: azData } = useCollection<Az>(azQuery)
 
+  useEffect(() => {
+    getUserAz(profileId as string)
+    .then(az => {
+      if (az.length) setAz(az)
+    })
+  },[])
+
   // UI vars  
   const { setSearchParams, setQz } = rootContext
   const userName = profileData?.data.name ? 
@@ -90,9 +99,9 @@ export const Profile = () => {
       profileData?.data.id.slice(0,6)  // !fix add to User table
   const createdAt = new Date(profileData?.data.createdAt).toDateString()
   const tabsData = [
-    {id: 'pins', data: pins},
     {id: 'qz', data: qzData},
     {id: 'az', data:  azData},
+    {id: 'pins', data: pins},
     {id: 'followers', data:  followers}
   ]
 
@@ -226,36 +235,6 @@ export const Profile = () => {
           h={'100%'}
         >
           <TabPanel
-            h={'100%'}
-            pb={'20vh'}
-          >
-            { pins?.data.length ? (
-              <List>
-                { pins?.data.map((res: any, i: number) => {
-                  const params = { q: res.data.id }
-                  const onClick = () => {
-                    setSearchParams(params)
-                    setQz(qzData?.data as CollectionRecordResponse<Qz, Qz>[])
-                  }
-                  
-                  return (
-                    <ListItem key={i}>
-                      <QCardSmall borderColor={borderColor} onClick={onClick} q={res.data} />
-                    </ListItem>
-                  )
-                })}
-              </List>
-            ) : (
-              <Flex
-                minH={100}
-                justifyContent={'center'}
-                alignItems={'center'}
-              >
-                <Text>No pins yet</Text>
-              </Flex>
-            )}
-          </TabPanel>
-          <TabPanel
             pb={'20vh'}
           >
             { qzData?.data.length ? (
@@ -287,7 +266,7 @@ export const Profile = () => {
           <TabPanel
             pb={'20vh'}
           >
-            { azData?.data.length ? (
+            { az?.length ? (
               <List>
                 { azData?.data.map((res: any, i: number) => {
                   const params = { a: res.data.id }
@@ -298,6 +277,36 @@ export const Profile = () => {
                   return (
                     <ListItem key={i}>
                       <ACardSmall borderColor={borderColor} onClick={onClick} a={res.data} />
+                    </ListItem>
+                  )
+                })}
+              </List>
+            ) : (
+              <Flex
+                minH={100}
+                justifyContent={'center'}
+                alignItems={'center'}
+              >
+                <Text>No az yet</Text>
+              </Flex>
+            )}
+          </TabPanel>
+          <TabPanel
+            h={'100%'}
+            pb={'20vh'}
+          >
+            { pins?.data.length ? (
+              <List>
+                { pins?.data.map((res: any, i: number) => {
+                  const params = { q: res.data.id }
+                  const onClick = () => {
+                    setSearchParams(params)
+                    setQz(qzData?.data as CollectionRecordResponse<Qz, Qz>[])
+                  }
+                  
+                  return (
+                    <ListItem key={i}>
+                      <QCardSmall borderColor={borderColor} onClick={onClick} q={res.data} />
                     </ListItem>
                   )
                 })}

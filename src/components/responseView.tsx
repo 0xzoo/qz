@@ -69,6 +69,11 @@ export const ResponseView = (props: responseViewProps) => {
     setInFocus(!inFocus)
   }
 
+  const handleScaleValue = (s: string) => {
+    setNewValue(s)
+    props.handleValue(s)
+  }
+
   switch(props.currentQ.type) {
     case 'mc':
       return (
@@ -96,8 +101,8 @@ export const ResponseView = (props: responseViewProps) => {
     case 'scale':
       return (
         <ScaleRadio
-          onChange={props.handleValue}
-          value={priorA?.data.value}
+          onChange={handleScaleValue}
+          priorA={priorA}
           responses={props.currentQ?.az as string[]}
         />
       )

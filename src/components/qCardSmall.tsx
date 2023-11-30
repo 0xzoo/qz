@@ -46,7 +46,10 @@ export const QCardSmall = (props: qCardProps) => {
           p={2}
           py={9}
         >
-          <Text fontSize='md'>
+          <Text
+            fontSize='md'
+            fontWeight={600}
+          >
             {q.stem}
           </Text>
         </Box>

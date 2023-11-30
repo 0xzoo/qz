@@ -10,7 +10,7 @@ import {
   Polybase,
   // PublicKey
 } from '@polybase/client'
-import { ethPersonalSign } from '@polybase/eth'
+// import { ethPersonalSign } from '@polybase/eth'
 import { Auth } from '@polybase/react/dist/auth/types'
 import { User } from '../types/types'
 import { AuthState } from '@polybase/auth'
@@ -35,11 +35,11 @@ export const useLogin = async (auth: Auth, polybase: Polybase) => {
 
   // Update the signer
   polybase.signer(async () => {
-    return {
-      h: 'eth-personal-sign',
-      sig: ethPersonalSign(wallet.privateKey, 'Confirm')
-    }
-    // return null
+    // return {
+    //   h: 'eth-personal-sign',
+    //   sig: await auth.ethPersonalSign('Confirm')
+    // }
+    return null
   })
 
   return wallet.publicKey

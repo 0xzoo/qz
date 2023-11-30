@@ -7,7 +7,9 @@ import {
   Center
 } from '@chakra-ui/react'
 import { CheckIcon } from '@chakra-ui/icons'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
+import { CollectionRecordResponse } from '@polybase/client'
+import { Az } from '../types/types'
 
 // enum scaleColors {
 //   'Strong Disagree' = '#FF0000',
@@ -31,12 +33,16 @@ import { useEffect, useState } from 'react'
 
 type ScaleRadioProps = {
   onChange?: (e: string) => void,
-  value?: string,
+  priorA: CollectionRecordResponse<Az, Az> | undefined
   responses: string[]
 }
 
-export const ScaleRadio = ({onChange, value, responses}: ScaleRadioProps) => {
-  const [ newValue, setNewValue ] = useState<string | undefined>(value)
+export const ScaleRadio = ({onChange, priorA, responses}: ScaleRadioProps) => {
+  const priorAValue = priorA
+    ? priorA.data.value
+    : undefined
+
+  const [ newValue, setNewValue ] = useState<string>()
   const isValid = !!onChange
   const handleChange = (s: string) => {
     setNewValue(s)
@@ -47,10 +53,6 @@ export const ScaleRadio = ({onChange, value, responses}: ScaleRadioProps) => {
     name: "scaleRadio",
     onChange: handleChange,
   })
-
-  useEffect(() => {
-    setNewValue(value)
-  },[value])
 
   const grayScale = [
     [responses[1], '#5f5f5f', 48],
@@ -63,7 +65,7 @@ export const ScaleRadio = ({onChange, value, responses}: ScaleRadioProps) => {
   ]
 
   const group = getRootProps()
-
+  console.log('newValue', newValue)
   return (
     <Flex
       flexDir={'column'}
@@ -85,10 +87,10 @@ export const ScaleRadio = ({onChange, value, responses}: ScaleRadioProps) => {
               isValid: isValid,
               size: e[2],
             })}
-            isDisabled={e[0] == value}
-            bg={e[0] == value ? e[1] : 'transparent'}
+            isDisabled={e[0] == priorAValue}
+            bg={e[0] == priorAValue ? e[1] : 'transparent'}
           >
-            {e[0] == value && <CheckIcon />}
+            {e[0] == priorAValue && <CheckIcon />}
           </CustomRadio>
         ))}
       </Flex>
@@ -99,7 +101,7 @@ export const ScaleRadio = ({onChange, value, responses}: ScaleRadioProps) => {
         <Text maxWidth={'45%'}>{responses[1]}</Text>
         <Text maxWidth={'45%'}>{responses[0]}</Text>
       </Flex>
-      <Center><Text>{newValue}</Text></Center>
+      <Center><Text>{newValue || priorAValue}</Text></Center>
     </Flex>
   )
 }
